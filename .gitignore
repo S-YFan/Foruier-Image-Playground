@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+Thumbs.db
+__pycache__/
+*.pyc
+# Local verification records and generated reports (keep tests/fixtures tracked).
+.qa/
+coverage/
+test-results/
+playwright-report/
+.cache/
+*.log
+*.tmp
+*.temp

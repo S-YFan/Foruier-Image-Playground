@@ -1,0 +1,12 @@
+{
+  "name": "fourier-phase-swap-playground",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A browser-local RGB Fourier phase swap experiment.",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "engines": { "node": ">=20" }
+}
