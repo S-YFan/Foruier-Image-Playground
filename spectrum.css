@@ -1,0 +1,106 @@
+.spectrum-page .page-shell { max-width: 1200px; }
+.spectrum-page .topbar { padding: 18px 0; }
+.spectrum-page .page-nav { padding-top: 12px; }
+.lab-intro { padding: 23px 0 21px; }
+.lab-intro h1 { font-size: 32px; line-height: 1.2; letter-spacing: -1px; }
+.lab-intro h1 > span { color: var(--green); }
+.lab-intro > p:last-child { color: var(--muted); font-size: 12px; margin: 12px 0 0; }
+.lab-intro .eyebrow { margin-bottom: 10px; }
+.preset-list { display: grid; grid-template-columns: 1fr 1fr 1.2fr 1.65fr; gap: 10px; }
+.preset-list button { display: flex; align-items: center; justify-content: center; gap: 10px; color: #c7d4ca; background: var(--panel); border: 1px solid #435449; border-radius: 7px; padding: 13px 10px; font-size: 12px; min-height: 56px; }
+.preset-list button > span:first-child { color: #a0b6a5; font-size: 17px; }
+.preset-list button small { display: block; color: #91aa98; font: 9px var(--mono); margin-top: 4px; }
+.preset-list button[aria-pressed="true"] { background: #263b2d; color: var(--green); border-color: var(--green); }
+.preset-list button:hover { background: #293a2f; }
+.preset-list button:focus-visible, input[type="range"]:focus-visible { outline: 2px solid var(--green); outline-offset: 5px; }
+.parameter-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 40px; padding: 17px 24px 13px; background: #17201b; border: 1px solid var(--line); border-radius: 8px; margin-top: 13px; }
+.range-control { min-width: 0; }
+.range-control label { display: flex; align-items: center; gap: 9px; font-size: 12px; color: #d1dfd5; margin-bottom: 12px; }
+.range-control label > span { color: #9ebaa6; font-family: var(--mono); }
+.range-control output { margin-left: auto; color: var(--green); font: 12px var(--mono); white-space: nowrap; }
+input[type="range"] { width: 100%; margin: 0; accent-color: var(--green); cursor: ew-resize; min-height: 24px; display: block; }
+.range-ticks { display: flex; justify-content: space-between; font: 9px var(--mono); color: #8fa596; margin-top: 6px; }
+.control-note { margin: 0; color: #a6b7ac; font-size: 10px; line-height: 1.8; grid-column: 1 / -1; }
+.single-control { grid-template-columns: 1fr; padding-bottom: 22px; }
+.single-control .range-control { max-width: 620px; width: 100%; }
+#period-help { margin-top: 11px; }
+.spectrum-page .status-line { justify-content: flex-start; margin: 7px 0 15px; }
+.spectrum-page .status-line p { text-align: left; font-size: 10px; }
+.experiment-conclusion { border-left: 3px solid var(--green); padding: 3px 0 4px 16px; margin: 16px 0; }
+.experiment-conclusion strong { display: block; color: var(--green); font-size: clamp(15px, 1.8vw, 21px); font-weight: 500; line-height: 1.5; }
+.experiment-conclusion p { color: #aabdaf; font-size: 11px; line-height: 1.8; margin: 6px 0 0; }
+.spatial-triptych { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.lab-card { border: 1px solid #35463a; border-radius: 8px; background: var(--panel); overflow: hidden; min-width: 0; }
+.lab-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 16px; min-height: 49px; }
+.lab-card h3 { font-size: 12px; font-weight: 500; margin: 0; }
+.lab-card-heading > span { font: 8px var(--mono); color: #9db3a4; text-align: right; }
+.lab-card > canvas { display: block; width: calc(100% - 30px); margin: 0 15px; height: auto; aspect-ratio: 1; border: 1px solid #3b4a40; image-rendering: pixelated; background: #0c1310; }
+.card-caption { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 10px; color: #a6baad; margin: 14px 15px 16px; line-height: 1.7; }
+.card-caption > span { font: 10px var(--mono); color: #bed3c4; }
+.reconstruction-card { border-color: #82b98c; background: #1d2c22; }
+.reconstruction-card .lab-card-heading h3, .reconstruction-card .lab-card-heading > span { color: var(--green); }
+.reconstruction-recipe { margin: 12px 15px 0; color: var(--green); font: 10px/1.6 var(--mono); }
+.reconstruction-card .card-caption { margin-top: 7px; }
+.reconstruction-check { color: #9fb6a6; font-size: 10px; margin: 13px 0 0; line-height: 1.8; }
+.reconstruction-check output { color: var(--green); font-family: var(--mono); }
+.fourier-section { margin-top: 32px; }
+.magnitude-result { display: flex; align-items: center; justify-content: space-between; gap: 25px; padding: 18px 20px; border: 1px solid #3d5845; border-radius: 8px; background: #19261e; margin: 18px 0; }
+.magnitude-result strong { font-size: 12px; font-weight: 500; color: #d5e9da; line-height: 1.7; }
+.magnitude-result p { color: #a3b8aa; font-size: 10px; line-height: 1.8; margin: 5px 0 0; }
+.metric { flex-shrink: 0; text-align: right; }
+.metric span { display: block; color: #a6c0ae; font: 8px var(--mono); margin-bottom: 7px; }
+.metric output { color: var(--green); font: 22px var(--mono); }
+.spectral-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.spectral-pair .lab-card > canvas { max-width: 384px; margin: 0 auto; width: calc(100% - 30px); }
+.phase-intro { margin: 29px 0 17px; }
+.phase-intro h3 { color: #d2e5d8; font-size: 16px; font-weight: 500; margin: 0 0 7px; }
+.phase-intro p { margin: 0; color: #a0b4a7; font-size: 11px; line-height: 1.8; }
+.map-key { margin: 16px; }
+.map-key p { color: #b9cfc0; font: 10px/1.7 var(--mono); margin: 0 0 12px; }
+.map-key > canvas { display: block; width: 100%; height: 12px; border-radius: 2px; }
+.legend-ticks { display: flex; justify-content: space-between; font: 9px/1.6 var(--mono); color: #bcd2c3; margin-top: 8px; gap: 8px; }
+.neutral-swatch { display: inline-block; width: 11px; height: 11px; background: rgb(70,76,72); border: 1px solid #829387; margin-right: 5px; vertical-align: -1px; }
+.mask-note { margin: 17px 0 22px; padding: 13px 17px; border: 1px solid var(--line); border-radius: 7px; }
+.mask-note p { color: #acbfb2; font-size: 10px; line-height: 1.8; margin: 0; }
+.mask-note p + p { margin-top: 6px; color: #8ea496; }
+.observation { margin: 10px 0 24px; }
+.observation strong { color: var(--green); font: 12px var(--mono); }
+.observation p { color: #b4c8bb; font-size: 12px; margin: 8px 0 0; line-height: 1.9; }
+.geometry-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: 18px; }
+.geometry-grid h2 { margin-bottom: 16px; }
+.geometry-spectra { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.geometry-guide { display: grid; grid-template-columns: 260px 1fr; gap: 28px; border: 1px solid var(--line); border-radius: 8px; padding: 18px; margin-top: 22px; }
+.geometry-guide .map-key { margin: 0; }
+.geometry-guide > div > p { font-size: 10px; line-height: 1.9; color: #a3b7aa; margin: 0 0 6px; }
+.display-footnote { margin: 23px 0 0; color: #91a899; font-size: 10px; line-height: 1.9; }
+@media (max-width: 1000px) {
+  .spatial-triptych { gap: 12px; }
+  .lab-card-heading { padding: 13px 12px; flex-wrap: wrap; }
+  .lab-card-heading > span { font-size: 7px; }
+}
+@media (max-width: 760px) {
+  .preset-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .parameter-panel { grid-template-columns: 1fr; gap: 22px; padding: 20px; }
+  .spatial-triptych, .spectral-pair, .geometry-grid, .geometry-spectra { grid-template-columns: minmax(0, 1fr); }
+  .spatial-triptych { gap: 17px; }
+  .lab-card > canvas { width: calc(100% - 24px); max-width: 384px; margin: 0 auto; }
+  .magnitude-result { align-items: flex-start; flex-direction: column; gap: 15px; }
+  .metric { text-align: left; }
+  .geometry-guide { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .geometry-guide .map-key { max-width: 340px; width: 100%; }
+  .lab-intro h1 { font-size: 33px; }
+  .lab-card-heading { padding: 16px; }
+}
+@media (max-width: 420px) {
+  .spectrum-page .page-shell { padding: 0 16px; }
+  .lab-intro { padding: 27px 0; }
+  .lab-intro h1 { font-size: 30px; }
+  .lab-intro .eyebrow { font-size: 8px; letter-spacing: .7px; }
+  .spectrum-page .technical-label { font-size: 7px; }
+  .preset-list button { font-size: 10px; gap: 7px; }
+  .preset-list button small { font-size: 8px; }
+  .range-control label { font-size: 11px; }
+  .range-control output { font-size: 11px; }
+  .parameter-panel { padding: 18px 15px; }
+  .experiment-conclusion strong { font-size: 16px; }
+}

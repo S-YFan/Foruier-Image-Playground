@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spectrum Lab — Browser Verification</title>
+<style>
+body{background:#101513;color:#e7ece6;font:15px/1.6 system-ui,sans-serif;max-width:1100px;margin:30px auto;padding:0 20px}h1{font-size:26px}li{padding:5px 0}.pass{color:#b5e5b6}.fail{color:#ffada1}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#1b251e;padding:18px}iframe{width:1040px;height:900px;border:1px solid #536257}a{color:#b5e5b6}button{padding:10px 20px}
+</style></head>
+<body><h1>Phase 2 — Spectrum Lab Verification</h1>
+<p>真實 FFT / IFFT、四種實驗參數、七張同步圖像、連續滑桿輸入、導航及桌面／手機寬度。Phase 1 測試保留於 <a href="./browser.html">原測試頁</a>。</p>
+<p id="summary" role="status">執行中…</p><button id="rerun" disabled>重新執行</button>
+<ol id="results"></ol><pre id="metrics">等待測試結果</pre>
+<h2>受測的實際 Spectrum Lab</h2><iframe id="lab" title="Spectrum Lab application"></iframe>
+<script type="module" src="./spectrum-browser.js"></script></body></html>

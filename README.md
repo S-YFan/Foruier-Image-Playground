@@ -2,9 +2,13 @@
 
 What makes an image recognizable — magnitude or phase?
 
-這是 **Phase 1：可直接運作的 RGB 相位交換實驗**。HTML、CSS、原生 JavaScript，無框架、無 CDN、無第三方執行期套件、無後端。所有使用者圖片都在瀏覽器記憶體內解碼、運算與顯示，不會上傳到伺服器。
+這是 **Fourier Lab：RGB 相位交換與幾何頻譜實驗**。HTML、CSS、原生 JavaScript，無框架、無 CDN、無第三方執行期套件、無後端。所有使用者圖片都在瀏覽器記憶體內解碼、運算與顯示，不會上傳到伺服器。
 
 開啟時會載入這個資料夾原有的 `Monkey.jpg` 和 `NSYSUlogo.jpg`，立即產生兩個結果。可以用上傳按鈕或拖放來更換任一圖片；圖片載入後自動計算，也可以按 **Swap phases** 再算一次。原始 Python 與圖片檔案均保留。
+
+同站兩頁以 **Playground | Spectrum Lab** 導航互通：`index.html` 保留 Phase 1 上傳與 RGB Phase Swap；`spectrum.html` 是 **Phase 2 — Fourier Spectrum & Geometric Experiments**，提供四種幾何圖形、真正的 Magnitude / Phase 頻譜，以及 Square 與 Shifted Square 的數值比較。Phase 2 已通過最後 Release Review，透過 `feature/fourier-spectrum` 分支與以 `main` 為目標的 Pull Request 送交驗收。[修改與測試報告](PHASE2_REPORT.md)。
+
+Refinement 預設進入 **Translation Experiment**：從 `(0,0)` 拖動 X / Y 滑桿，同時觀察 Original、Shifted 與 **Original Magnitude + Shifted Phase** 的真正 IFFT 重建；振幅不變，相位變化由固定尺度的 Phase Difference / Phase Change 輔助呈現。Square、Circle、Vertical Stripes 另提供邊長、半徑、可整除 256 的週期控制。
 
 ## 1. 本機執行
 
@@ -37,13 +41,19 @@ node scripts/serve.mjs
 Foruier-Phase-Swap/
 ├── index.html                    # 頁面、上傳欄位、四張 Canvas
 ├── styles.css                    # 深色實驗室風格、響應式布局
+├── spectrum.html                 # 獨立 Spectrum Lab 頁面
+├── spectrum.css                  # 三欄頻譜、相位色環、平移比較
 ├── favicon.svg
 ├── js/
 │   ├── app.js                    # UI、圖片上傳事件、Worker 通訊
 │   ├── image.js                  # 真實圖片解碼、先裁切再縮放、白底合成
 │   ├── fft.js                    # 自包含 radix-2 FFT 與 separable 2D FFT
 │   ├── fourier.js                # RGB 頻譜、相位交換、重建、自我檢查
-│   └── worker.js                 # 背景計算、快取 A/B 頻譜
+│   ├── worker.js                 # 背景計算、快取 A/B 頻譜
+│   ├── spectrum.js               # 幾何像素、單通道分析、顯示副本與 Shift Theorem 比較
+│   ├── spectrum-worker.js        # 共用核心、參數化實驗、固定基準與有界快取
+│   ├── translation.js            # 循環位移、Phase Difference / Change、真正 IFFT 重建
+│   └── spectrum-app.js           # Lab 事件、Canvas、圖例、Worker 通訊
 ├── scripts/
 │   └── serve.mjs                 # 零套件依賴的本機預覽伺服器
 ├── tests/
@@ -52,6 +62,11 @@ Foruier-Phase-Swap/
 │   ├── worker.test.mjs           # Worker 實際 FFT 呼叫計數與快取測試
 │   ├── worker-adapter.mjs        # Node worker_threads 測試橋接
 │   ├── static.test.mjs           # HTTP、MIME、部署相對路徑檢查
+│   ├── spectrum*.test.mjs        # Phase 2 數學、Worker、repository 子路徑測試
+│   ├── spectrum-worker-adapter.mjs # Spectrum Worker 的 Node 測試橋接
+│   ├── translation*.test.mjs     # 202 組位移、相位遮罩、參數與 IFFT 呼叫驗證
+│   ├── spectrum-browser.html     # Phase 2 瀏覽器測試入口
+│   ├── spectrum-browser.js       # Lab 真實 Canvas、事件、導航、響應式驗證
 │   ├── browser.html             # 可重複執行的瀏覽器測試入口
 │   ├── browser.js               # Canvas、真實解碼、Worker、UI 事件測試
 │   ├── test-data.js              # 確定性的數值測試圖樣
@@ -62,12 +77,13 @@ Foruier-Phase-Swap/
 ├── .nojekyll                     # GitHub Pages 直接提供靜態檔案
 ├── README.md
 ├── VERIFICATION.md               # 驗證結果、修正原因與驗證限制
+├── PHASE2_REPORT.md              # Phase 2 驗收報告與修改清單
 ├── Monkey.jpg                    # 原有範例圖片
 ├── NSYSUlogo.jpg                 # 原有範例圖片
 └── Graph_Experiment_FT_IFT.py     # 原有 Python 實驗，網站不依賴它
 ```
 
-正式網站需要 `index.html`、`styles.css`、`favicon.svg`、`js/`、兩張範例圖片與 `.nojekyll`。其他檔案是說明、開發與驗證用途。
+正式網站需要 `index.html`、`spectrum.html`、`styles.css`、`spectrum.css`、`favicon.svg`、`js/`、兩張範例圖片與 `.nojekyll`。其他檔案是說明、開發與驗證用途。
 
 ## 3. 圖片前處理
 
@@ -123,7 +139,7 @@ I′[y,x] = (1/N²) Σ_v Σ_u G[v,u] exp(+i 2π (u x + v y) / N)
 
 正向 FFT **不正規化**；反向每一維除以 N，因此完整 2D IFFT 除以 N² = 65,536，與 NumPy 預設的 backward normalization 一致。[NumPy FFT 文件](https://numpy.org/doc/stable/reference/routines.fft.html)
 
-陣列索引固定為 `y * N + x`。頻域對應 `v * N + u`，DC 位於 `[0,0]`。這一版沒有頻譜視覺化，也**不執行 fftshift**。日後 Phase 2 的 fftshift 只用在顯示副本，不應改動這裡的計算排列。
+陣列索引固定為 `y * N + x`。頻域對應 `v * N + u`，DC 位於 `[0,0]`。Playground 計算**不執行 fftshift**。Phase 2 的 fftshift 僅作用於 Spectrum Lab 的顯示副本，不改動這裡的計算排列。
 
 ## 6. IFFT 與 0–255 的映射
 
@@ -191,9 +207,11 @@ Node 測試包含以下檢查，完整結果與限制見 [VERIFICATION.md](VERIF
 8. 全黑、常數圖與零振幅相位約定。
 9. 負值、超過 255、rounding 與 clipping，不取絕對值或拉伸對比。
 
-另涵蓋近零振幅相位的回歸測試、9 種 256² 圖樣的 81 種有序交換、Parseval 能量、RGB 通道隔離、Worker 真實 FFT 呼叫次數、快取替換與靜態部署資源檢查。Node 共 **18/18 通過**。
+另涵蓋近零振幅相位的回歸測試、9 種 256² 圖樣的 81 種有序交換、Parseval 能量、RGB 通道隔離、Worker 真實 FFT 呼叫次數、快取替換與靜態部署資源檢查。Phase 1 原有 **18 項保留**；Phase 2 初版 13 項與 Refinement 新增 7 項也通過，Node 共 **38/38 通過**。
 
 瀏覽器自動化測試需要啟動 `node scripts/serve.mjs`，然後開啟 <http://127.0.0.1:8080/tests/browser.html>。頁面會自動執行 **20 項**真實圖片解碼、Canvas、Web Worker 與實際頁面事件測試，並顯示每項結果與數值指標。Windows Chromium 本次 **20/20 通過**。測試檔案已隨附；不需要安裝 Python 或 Pillow，除非要自行重新生成測試素材。
+
+Phase 2 瀏覽器測試入口是 <http://127.0.0.1:8080/tests/spectrum-browser.html>：四種實驗與參數的 Canvas 逐像素比對、循環圖例與相位遮罩、七張平移圖與真正 IFFT、連續輸入只提交最新結果、1040 / 390 / 320px 布局、錯誤恢復、兩頁導航與實際資源路徑，Chromium **19/19 通過**。本次兩組瀏覽器測試也都在 `/fourier-phase-swap-playground/` 子路徑下實際執行。
 
 256² 測試圖樣的 FFT round-trip 最大實部誤差約 `1.28e-13`，同圖振幅相位重建約 `2.42e-13`，81 種交換的最大虛部殘差約 `3.55e-12`。相同圖片重建到 8-bit 後的最大像素差為 **0**。這些是測試樣本的實測值，不是對任意輸入的誤差上界。網頁每次啟動也會執行原有的 round-trip 自我檢查（容許值 `1e-8`），若失敗會停止計算。
 
@@ -206,35 +224,30 @@ Node 測試包含以下檢查，完整結果與限制見 [VERIFICATION.md](VERIF
 - 按 Swap 可重新運算；更換任一圖也會自動運算。
 - 桌面雙欄、手機單欄，鍵盤可以聚焦上傳與 Swap。
 
-## 10. 建立 GitHub Repository 並免費部署
+## 10. Spectrum Lab 的數學與顯示
 
-本交付尚未建立遠端 repository，也尚未發布網址。GitHub Free 的 Pages 可使用 public repository；下列是免建置工具的部署方式。[GitHub 官方說明](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site)
+- Square：白底、中央黑色方形，邊長預設 64，可選 16…160（偶數）。Circle：半徑預設 40，可選 8…96，中心在像素網格的 (127.5,127.5)。Vertical Stripes：週期預設 32，可選 8 / 16 / 32 / 64 / 128，黑白各半。
+- Shifted Square / Translation Experiment：固定 64×64 基準，從 `(0,0)` 開始，以 `circularShift(originalPixels,256,dx,dy)` 逐像素循環平移。X / Y 各 −96…+96、步長 1，沒有重新畫圖、插值或裁切。舊 `createPreset()` 無參數時仍保留初版 `(32,24)` 方便回歸測試，UI 明確傳入滑桿位移。
+- `analyzeGray()` 直接呼叫既有 `fft2()`；保留未正規化的 Float64 實部、虛部、振幅及 `atan2` 相位，DC 索引仍為 0。Lab 是單通道分析，沒有 RGB 相位平均。
+- 振幅顯示為 `round(255 * log1p(|F|) / log1p(scale))`，全零圖顯示黑色。一般幾何實驗各圖獨立映射；Translation 的兩圖共用固定 Original 尺度，方便直接比較。不能用不同幾何參數的亮度比較絕對能量。
+- 相位用 HSV 色環：−π / +π 為紅、0 為青。`|F| ≤ max|F| × 1e-10` 的點只在畫面上改為中性色；不刪除或改寫原始係數。零振幅相位儲存為 0 僅是約定，畫面不將它當成有效相位。
+- `fftshift()` 回傳顯示副本；Magnitude 與 Phase 的 DC 都移到中心 (128,128)，FFT / IFFT 與快取從未重排。
+- Translation 比較全部 65,536 個原始頻率點的最大振幅差，以及 `G = F exp[-i2π(uΔx+vΔy)/256]` 的最大複數係數誤差。
+- 相位差採 `arg(G·conj(F))`；Phase Change 採 `2|sin(Δφ/2)|`，固定尺度 0…2，暗色為 0、暖白為 2，灰色為無定義。兩圖共用雙側有效振幅遮罩；不以每次 min-max 拉伸，遮罩不影響係數或重建。
+- 重建直接重用 Phase 1 的 `analyzeRGB()` 共軛配對與第一灰階通道，再呼叫 `reconstructChannel(originalMagnitude,shiftedPhase,fft)`。使用全部頻率與原有自共軛點、零點和 clamp / round 規則。202 組位移最大浮點重建誤差 `1.85e-13`，8-bit 像素差為 0。
+- Worker 保留固定 Translation 基準與最後一組幾何參數，不累積歷史位移；舊四 Preset 的有界快取也保留供回歸測試。UI 至多一個運算中請求加上最新目標狀態，以 revision 排除舊回應，滑桿在運算期間仍可操作。輸出 buffer 是新建顯示資料，transfer 不會移走原始頻譜。
 
-1. 在 GitHub 選擇 **New repository**。
-2. 名稱可用 `fourier-phase-swap-playground`，選 **Public**。
-3. 若使用下列本機 Git 指令，不要讓 GitHub 預先加入 README、license 或 `.gitignore`，以便推送這個已完整建立的資料夾。
-4. 在專案資料夾執行（將 `YOUR_USERNAME` 換成你的 GitHub 帳號）：
+## 11. 分支、預覽與驗收
+
+既有 [Repository](https://github.com/S-YFan/fourier-phase-swap-playground) 與 [Phase 1 正式站](https://s-yfan.github.io/fourier-phase-swap-playground/) 沿用使用者提供的專案資訊。Phase 2 從 `main`（`3741cf8`）建立 `feature/fourier-spectrum`；Release Review 通過後依使用者授權 Commit、Push 此功能分支並建立以 `main` 為目標的 PR。Merge 與正式部署留待使用者最後確認，尚未執行。
+
+本機一般預覽：<http://127.0.0.1:8080/spectrum.html>。要重現 repository 子路徑驗證，可用：
 
 ```powershell
-git init -b main
-git add index.html styles.css favicon.svg js scripts tests package.json README.md VERIFICATION.md .gitignore .nojekyll Monkey.jpg NSYSUlogo.jpg Graph_Experiment_FT_IFT.py
-git commit -m "Build RGB Fourier phase swap playground"
-git remote add origin https://github.com/YOUR_USERNAME/fourier-phase-swap-playground.git
-git push -u origin main
+$env:BASE_PATH = '/fourier-phase-swap-playground/'
+node scripts/serve.mjs
 ```
 
-5. 到 repository 的 **Settings → Pages**。
-6. 在 **Build and deployment → Source** 選 **Deploy from a branch**。
-7. Branch 選 **main**，資料夾選 **/(root)**，按 **Save**。
-8. 等待部署成功，使用 Pages 頁面的 **Visit site**。一般網址為 `https://YOUR_USERNAME.github.io/fourier-phase-swap-playground/`。
+開啟 <http://127.0.0.1:8080/fourier-phase-swap-playground/spectrum.html>，兩組測試入口也加上相同前綴。`BASE_PATH` 僅供本機伺服器模擬部署，正式 GitHub Pages 不需要此環境變數、Node、CDN 或 build step。完整測試結果與未驗證範圍見 [PHASE2_REPORT.md](PHASE2_REPORT.md)。
 
-此設定直接使用根目錄的 `index.html` 與 `.nojekyll`；不需要 Vite、Actions 自訂 YAML、npm build 或付費服務。設定與部署狀態以 GitHub 的 Pages 頁面為準。[發布來源設定文件](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
-
-日後更新只需要 commit / push 到 main，Pages 會重新發布。若看到 404，檢查選到的 branch / folder、根目錄的 `index.html`、檔名大小寫與 repository 的 Actions 部署結果。
-
-## 11. 後續階段
-
-- **Phase 2**：可展開的 magnitude / phase 頻譜、log 顯示、顯示用 fftshift、相位色環與更完整的科學說明。
-- **Phase 3**：維持共軛對稱的相位插值、零振幅與自共軛點規則、下載、重設。
-
-本次以 Phase 1 完整可運作為交付範圍，沒有加入尚未實作的按鈕或模擬頻譜。
+Phase 3 的相位插值、下載、頻率編輯、3D 與 RGB Channel Mixer 均未納入本次範圍。
