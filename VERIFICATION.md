@@ -1,4 +1,14 @@
-# Phase 1 Verification & Testing
+# Verification & Testing
+
+Phase 2 Refinement 更新：2026-10-17（Asia/Taipei）。本機 `feature/fourier-spectrum` 分支實測 **38/38 Node、20/20 Phase 1 Chromium、19/19 Phase 2 Chromium** 通過。包含原有 31 項 Node 與 7 項新增測試，兩組瀏覽器測試均在 `/fourier-phase-swap-playground/` 子路徑執行。202 組位移的 IFFT 最大實部誤差 `1.8474111129762605e-13`，8-bit 顯示像素差為 0。Phase 1 FFT、RGB 重建、Worker 和原有測試程式未更動，Playground 保持 refinement 開始時的原樣。
+
+Final Release Review（2026-10-17）再次執行 **38/38 Node、20/20 Phase 1 Chromium、19/19 Phase 2 Chromium** 全部通過；未發現 Release Blocker。Phase 1 核心無 diff，滑桿引導已存在，Phase Change 零值與無效遮罩明確不同，Release 暫存清單排除 `.qa`、暫存檔與截圖。依使用者授權提交功能分支並建立 PR；Merge 及部署尚未執行。
+
+Phase 2 修改清單、誤差數值、重複執行方式，以及實測／程式碼審查／未驗證範圍，見 [PHASE2_REPORT.md](PHASE2_REPORT.md)。
+
+以下保留 Phase 1 原始驗證紀錄；其中日期與部署狀態描述的是當時的測試。
+
+# Phase 1 Verification & Testing（歷史紀錄）
 
 日期：2026-10-16（Asia/Taipei）。未加入 Phase 2 / Phase 3。
 

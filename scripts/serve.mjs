@@ -6,6 +6,9 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const port = Number(process.env.PORT || 8080);
+// Optional local mount to exercise GitHub Pages repository-subpath URLs.
+const basePath = process.env.BASE_PATH || '/';
+if (!/^\/(?:[a-zA-Z0-9_-]+\/)*$/.test(basePath)) throw new Error('BASE_PATH must start and end with / and contain simple path segments.');
 const types = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp',
@@ -17,7 +20,9 @@ const server = createServer(async (request, response) => {
     return;
   }
   try {
-    const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    let pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    if (!pathname.startsWith(basePath)) { response.writeHead(404).end('Not found'); return; }
+    pathname = pathname.slice(basePath.length - 1);
     let path = resolve(root, '.' + pathname);
     const local = relative(root, path);
     if (local.startsWith('..') || local.split(sep).some(part => part.startsWith('.'))) {
@@ -34,4 +39,4 @@ const server = createServer(async (request, response) => {
   }
 });
 server.on('error', error => { console.error(error.message); process.exitCode = 1; });
-server.listen(port, '127.0.0.1', () => console.log(`Local: http://127.0.0.1:${server.address().port}`));
+server.listen(port, '127.0.0.1', () => console.log(`Local: http://127.0.0.1:${server.address().port}${basePath}`));
