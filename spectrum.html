@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101513">
-  <meta name="description" content="移動方形，觀察振幅不變、相位改變，以及真正 IFFT 重建如何跟著移動。">
-  <title>Spectrum Lab — Fourier Lab</title>
+  <meta name="application-name" content="FOURIER IMAGE LAB">
+  <meta name="description" content="FOURIER IMAGE LAB：移動方形，觀察振幅不變、相位改變，以及真正 IFFT 重建如何跟著移動。">
+  <title>Experiment 002 — Spectrum Lab — FOURIER IMAGE LAB</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css"><link rel="stylesheet" href="./spectrum.css">
   <script type="module" src="./js/spectrum-app.js"></script>
@@ -12,10 +13,14 @@
 <body class="spectrum-page">
   <div class="page-shell">
     <header class="topbar">
-      <a class="brand" href="./index.html" aria-label="Fourier Lab 首頁"><span class="brand-mark" aria-hidden="true">ƒ</span><span>FOURIER LAB<span class="brand-divider">/</span><span class="brand-light">SPECTRUM LAB</span></span></a>
+      <a class="brand" href="./index.html" aria-label="FOURIER IMAGE LAB 首頁"><span class="brand-mark" aria-hidden="true">ƒ</span><span>FOURIER IMAGE LAB<span class="brand-divider">/</span><span class="brand-light">SPECTRUM LAB</span></span></a>
       <span class="local-badge"><span class="status-dot"></span> 全程在你的瀏覽器運算</span>
     </header>
-    <nav class="page-nav" aria-label="實驗室頁面"><a href="./index.html">Playground</a><span aria-hidden="true">/</span><a href="./spectrum.html" aria-current="page">Spectrum Lab</a></nav>
+    <nav class="page-nav" aria-label="實驗室頁面">
+      <a href="./index.html"><span class="nav-number">001</span> RGB Fourier Phase Swap</a><span aria-hidden="true">/</span>
+      <a href="./spectrum.html" aria-current="page"><span class="nav-number">002</span> Spectrum Lab</a><span aria-hidden="true">/</span>
+      <a href="./filtering.html"><span class="nav-number">003</span> Gaussian Filtering</a>
+    </nav>
     <main>
       <section class="lab-intro" aria-labelledby="page-title">
         <p class="eyebrow"><span>EXPERIMENT 002</span><span class="eyebrow-line"></span> SPECTRUM &amp; GEOMETRY</p>
@@ -83,6 +88,6 @@
       </div>
       <p class="display-footnote">所有頻譜來自真正 FFT。log 映射、色彩、遮罩與 fftshift 只處理顯示資料；原始 Fourier 係數不變。頻率橫軸 u、縱軸 v（向右／下遞增，−128…127 bins）。</p>
     </main>
-    <footer><span>FOURIER LAB <span class="footer-dot">·</span> An experiment in seeing.</span><span>PHASE 2 <span class="footer-dot">/</span> SPECTRUM &amp; GEOMETRY</span></footer>
+    <footer><span>FOURIER IMAGE LAB <span class="footer-dot">·</span> An experiment in seeing.</span><span>EXPERIMENT 002 <span class="footer-dot">/</span> SPECTRUM LAB</span></footer>
   </div>
 </body></html>

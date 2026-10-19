@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101513">
-  <meta name="description" content="在瀏覽器中交換兩張圖片的 Fourier 振幅與相位。真正的 RGB 2D FFT，所有圖片運算皆在本機完成。">
-  <title>Fourier Phase Swap Playground</title>
+  <meta name="application-name" content="FOURIER IMAGE LAB">
+  <meta name="description" content="FOURIER IMAGE LAB：Interactive Experiments in Fourier Image Processing。交換 RGB 圖片的 Fourier 振幅與相位，所有運算皆在本機完成。">
+  <title>Experiment 001 — RGB Fourier Phase Swap — FOURIER IMAGE LAB</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./js/app.js"></script>
@@ -13,25 +14,27 @@
 <body>
   <div class="page-shell">
     <header class="topbar">
-      <a class="brand" href="./" aria-label="Fourier Lab 首頁">
+      <a class="brand" href="./" aria-label="FOURIER IMAGE LAB 首頁">
         <span class="brand-mark" aria-hidden="true">ƒ</span>
-        <span>FOURIER LAB<span class="brand-divider">/</span><span class="brand-light">PLAYGROUND</span></span>
+        <span>FOURIER IMAGE LAB<span class="brand-divider">/</span><span class="brand-light">PLAYGROUND</span></span>
       </a>
       <span class="local-badge"><span class="status-dot"></span> 全程在你的瀏覽器運算</span>
     </header>
     <nav class="page-nav" aria-label="實驗室頁面">
-      <a href="./index.html" aria-current="page">Playground</a>
+      <a href="./index.html" aria-current="page"><span class="nav-number">001</span> RGB Fourier Phase Swap</a>
       <span aria-hidden="true">/</span>
-      <a href="./spectrum.html">Spectrum Lab</a>
+      <a href="./spectrum.html"><span class="nav-number">002</span> Spectrum Lab</a>
+      <span aria-hidden="true">/</span>
+      <a href="./filtering.html"><span class="nav-number">003</span> Gaussian Filtering</a>
     </nav>
 
     <main>
       <section class="intro" aria-labelledby="page-title">
         <div class="intro-copy">
-          <p class="eyebrow"><span>EXPERIMENT 001</span><span class="eyebrow-line"></span> THE SHAPE OF A SIGNAL</p>
-          <h1 id="page-title">Fourier Phase Swap<br><span>Playground</span><span class="title-dot">.</span></h1>
-          <p class="subtitle" lang="en">What makes an image recognizable — magnitude or phase?</p>
-          <p class="intro-description">交換兩張圖片的相位，看看熟悉的輪廓如何出現在另一張圖片裡。</p>
+          <p class="eyebrow"><span>EXPERIMENT 001</span><span class="eyebrow-line"></span> RGB FOURIER PHASE SWAP</p>
+          <h1 id="page-title">FOURIER <br><span>IMAGE LAB</span><span class="title-dot">.</span></h1>
+          <p class="subtitle" lang="en">Interactive Experiments in Fourier Image Processing</p>
+          <p class="intro-description">RGB Fourier Phase Swap：交換兩張圖片的相位，看看熟悉的輪廓如何出現在另一張圖片裡。</p>
         </div>
         <div class="signal-art" aria-hidden="true">
           <svg viewBox="0 0 220 160" fill="none">
@@ -130,7 +133,7 @@
         </details>
       </section>
     </main>
-    <footer><span>FOURIER LAB <span class="footer-dot">·</span> An experiment in seeing.</span><span>PHASE 1 <span class="footer-dot">/</span> RGB PHASE SWAP</span></footer>
+    <footer><span>FOURIER IMAGE LAB <span class="footer-dot">·</span> An experiment in seeing.</span><span>EXPERIMENT 001 <span class="footer-dot">/</span> RGB FOURIER PHASE SWAP</span></footer>
   </div>
 </body>
 </html>

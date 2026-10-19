@@ -1,5 +1,13 @@
 # Verification & Testing
 
+Phase 3 Finalization／品牌更新：2026-10-19（Asia/Taipei）。三頁統一為 **FOURIER IMAGE LAB**，主頁副標題為 **Interactive Experiments in Fourier Image Processing**。已核准的滑桿、兩區布局、運算 JS 與照片保持原樣。完整 **48/48 Node、20/20 Experiment 001、19/19 Experiment 002、15/15 Experiment 003 Chromium** 通過；包含三頁品牌、metadata、repository 子路徑、1040／390／320px 與六個導航方向。README 已整合最新遠端 main 的文件更新。發布經授權的 Commit／Push／PR／checks／Merge 流程進行，部署實測結果見 PR 與最終交付。詳細記錄見 [PHASE3A_REPORT.md](PHASE3A_REPORT.md)。下方各次「未 Commit／部署」為歷史狀態。
+
+Experiment 003 兩區獨立參數更新：2026-10-19（Asia/Taipei）。第一區為 Original / LPF / HPF 與 Sigma (σ₁)，第二區為 Original / Sharpening 與獨立 Sigma (σ₂)／Alpha。更換來源只解碼與分析一次，兩個 Original 同步；參數更新只計算對應區段。**48/48 Node、20/20 Phase 1 Chromium、19/19 Phase 2 Chromium、15/15 Experiment 003 Chromium** 通過，涵蓋數值與顯示獨立性、精確 IFFT 呼叫計數、快取、decode／重繪次數、快速輸入與獨立錯誤恢復、三頁導航與窄螢幕布局。詳見 [最新實作紀錄](PHASE3A_REPORT.md)。未 Commit、Push、PR、Merge 或部署。下方為先前介面的歷史紀錄。
+
+Experiment 003 介面微調更新：2026-10-19（Asia/Taipei）。公開命名、三頁導航、Sigma／Strength 控制項分組完成，未更動運算程式或照片。重新驗證 **47/47 Node、20/20 Phase 1 Chromium、19/19 Phase 2 Chromium、13/13 Experiment 003 Chromium** 通過；包含 repository 子路徑下六個方向的實際導航、三頁 1040／390／320px 導航布局，以及 alpha 僅影響 Sharpening、sigma 影響三種結果的像素檢查。詳見 [微調紀錄](PHASE3A_REPORT.md)。未 Commit、Push、PR、Merge 或部署。
+
+Phase 3A 更新：2026-10-19（Asia/Taipei）。已新增獨立 Gaussian Filtering 頁面，使用真正的 RGB 頻域濾波與 IFFT，預設範例改為擁有者提供的 Monkey / Cat 照片。全部 **47/47 Node、20/20 Phase 1 Chromium、19/19 Phase 2 Chromium、12/12 Phase 3A Chromium** 測試通過。12 組 NumPy 交叉比對最大實部差異 `5.68e-13`，最大虛部殘差 `4.90e-13`。本次沒有 Commit、Push、PR、Merge 或部署。實作、檔案清單、sigma 慣例與驗證限制見 [PHASE3A_REPORT.md](PHASE3A_REPORT.md)。以下 Phase 1 / Phase 2 的日期與發布狀態均為歷史紀錄。
+
 Phase 2 Refinement 更新：2026-10-17（Asia/Taipei）。本機 `feature/fourier-spectrum` 分支實測 **38/38 Node、20/20 Phase 1 Chromium、19/19 Phase 2 Chromium** 通過。包含原有 31 項 Node 與 7 項新增測試，兩組瀏覽器測試均在 `/fourier-phase-swap-playground/` 子路徑執行。202 組位移的 IFFT 最大實部誤差 `1.8474111129762605e-13`，8-bit 顯示像素差為 0。Phase 1 FFT、RGB 重建、Worker 和原有測試程式未更動，Playground 保持 refinement 開始時的原樣。
 
 Final Release Review（2026-10-17）再次執行 **38/38 Node、20/20 Phase 1 Chromium、19/19 Phase 2 Chromium** 全部通過；未發現 Release Blocker。Phase 1 核心無 diff，滑桿引導已存在，Phase Change 零值與無效遮罩明確不同，Release 暫存清單排除 `.qa`、暫存檔與截圖。依使用者授權提交功能分支並建立 PR；Merge 及部署尚未執行。
@@ -31,7 +39,7 @@ Phase 2 修改清單、誤差數值、重複執行方式，以及實測／程式
 | 裁切／縮放 | 寬圖、高圖、奇數多餘邊長；驗證全部 256² 像素，不排除邊緣 |
 | clipping／無額外 normalization | 負值、超過 255、四捨五入、裁切比例、低對比圖樣保持原數值 |
 | PNG / JPEG / WebP | 瀏覽器實際解碼三格式；實際頁面上傳事件後逐像素比對來源與兩個同圖結果 |
-| 不同圖、黑白圖、灰階 | Node 圖樣矩陣；真實圖片解碼及 Worker；主頁猴子／校徽自動載入；黑／白上傳 |
+| 不同圖、黑白圖、灰階 | Node 圖樣矩陣；真實圖片解碼及 Worker；主頁範例自動載入（目前為猴子／貓）；黑／白上傳 |
 | 快取與重算 | 實際 worker 程式在 Node worker_threads 中執行，以 FFT 呼叫計數確認重複 Swap 不做正向 FFT |
 | 事件與資源清理 | 實際頁面 change / drop / click / 空選擇事件；損壞圖片；URL 和 postMessage 故障注入；9 個建立的 Blob URL 全數撤銷 |
 | 靜態部署資源 | 本機 HTTP 狀態與 MIME、`.nojekyll`、遞迴檢查瀏覽器 module graph，在 repository 子路徑下解析不逸出 |

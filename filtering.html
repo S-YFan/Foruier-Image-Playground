@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101513">
+  <meta name="application-name" content="FOURIER IMAGE LAB">
+  <meta name="description" content="FOURIER IMAGE LAB：以真正的 RGB FFT / IFFT 比較 Gaussian Low-Pass、High-Pass 與 Sharpening，觀察空間頻率如何構成細節與邊緣。">
+  <title>Experiment 003 — Gaussian Filtering — FOURIER IMAGE LAB</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./filtering.css">
+  <script type="module" src="./js/filtering-app.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="FOURIER IMAGE LAB 首頁"><span class="brand-mark" aria-hidden="true">ƒ</span><span>FOURIER IMAGE LAB<span class="brand-divider">/</span><span class="brand-light">FILTERING</span></span></a>
+      <span class="local-badge"><span class="status-dot"></span> 全程在你的瀏覽器運算</span>
+    </header>
+    <nav class="page-nav" aria-label="實驗室頁面">
+      <a href="./index.html"><span class="nav-number">001</span> RGB Fourier Phase Swap</a><span aria-hidden="true">/</span>
+      <a href="./spectrum.html"><span class="nav-number">002</span> Spectrum Lab</a><span aria-hidden="true">/</span>
+      <a href="./filtering.html" aria-current="page"><span class="nav-number">003</span> Gaussian Filtering</a>
+    </nav>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="eyebrow"><span>EXPERIMENT 003</span><span class="eyebrow-line"></span> DETAILS &amp; EDGES</p>
+          <h1 id="page-title">Gaussian<br><span>Filtering</span><span class="title-dot">.</span></h1>
+          <p class="subtitle" lang="en">How do spatial frequencies shape image details and edges?</p>
+          <p class="intro-description">同一張照片，兩個獨立實驗：比較低頻與高頻，再觀察高頻如何加強細節。</p>
+        </div>
+      </section>
+      <div class="filter-controls source-panel">
+        <div class="source-controls">
+          <label for="example">來源圖片</label>
+          <select id="example"><option value="Monkey.jpg">Monkey.jpg</option><option value="Cat.jpg">Cat.jpg</option><option value="upload" disabled hidden>自選圖片</option></select>
+          <label class="upload-label" for="upload">上傳圖片 ↗</label>
+          <input class="file-input" id="upload" type="file" accept="image/png,image/jpeg,image/webp" aria-label="上傳濾波來源圖片" aria-describedby="upload-policy">
+          <span class="source-filename" id="filename">等待圖片</span>
+        </div>
+      </div>
+      <p class="upload-policy" id="upload-policy">兩區共用同一張來源。置中裁切為正方形 → 縮放至 256 × 256，不拉伸原圖。PNG / JPEG / WebP，每張上限 25 MB；透明區域以白色合成。</p>
+      <div class="status-line"><span class="status-dot"></span><p id="status" role="status" aria-live="polite">正在載入範例圖片…</p></div>
+      <noscript><p class="error-note">這個實驗需要啟用 JavaScript，並透過 HTTP / HTTPS 開啟。</p></noscript>
+
+      <div id="results" aria-busy="true">
+        <section class="filter-section" aria-labelledby="pass-heading">
+          <div class="section-heading"><h2 id="pass-heading"><span class="section-number">01</span> Gaussian Low / High Pass</h2><span class="technical-label" id="pass-timing">2D IFFT</span></div>
+          <div class="filter-controls section-controls">
+            <fieldset class="parameter pass-parameter">
+              <legend>LPF / HPF Frequency Width</legend>
+              <label for="sigma">Sigma (σ₁) <output id="sigma-value" for="sigma">30</output></label>
+              <input id="sigma" type="range" min="1" max="200" step="1" value="30" aria-describedby="sigma-scope">
+              <p id="sigma-scope">僅影響 LPF 與 HPF。越小，LPF 越平滑；HPF 保留更多細節。</p>
+            </fieldset>
+          </div>
+          <div class="filter-results pass-comparison" id="pass-results" aria-busy="true">
+            <article class="image-card"><div class="card-heading"><h3>Original</h3></div><div class="image-surface"><canvas id="original" width="256" height="256" role="img" aria-label="Original：LPF / HPF 共用的來源圖片" hidden></canvas></div><div class="filter-caption"><p>共同的來源像素</p><span id="dimensions">等待圖片</span></div></article>
+            <article class="image-card result-card"><div class="card-heading"><h3>Gaussian LPF</h3></div><div class="image-surface"><canvas id="lpf" width="256" height="256" role="img" aria-label="Gaussian Low-Pass Filter 重建結果" hidden></canvas></div><div class="filter-caption"><p>保留低頻，平滑細節</p><span>Re(IFFT) → clamp</span></div></article>
+            <article class="image-card result-card"><div class="card-heading"><h3>Gaussian HPF</h3></div><div class="image-surface"><canvas id="hpf" width="256" height="256" role="img" aria-label="Gaussian High-Pass Filter，零響應顯示為灰色 128" hidden></canvas></div><div class="filter-caption"><p>取出高頻與邊緣</p><span>顯示映射：response + 128</span></div></article>
+          </div>
+          <p class="section-note">HPF 的灰色 128 代表零響應；較亮／較暗分別表示正／負響應。加 128 只為顯示。</p>
+        </section>
+
+        <section class="filter-section sharpen-section" aria-labelledby="sharpen-heading">
+          <div class="section-heading"><h2 id="sharpen-heading"><span class="section-number">02</span> Gaussian Sharpening</h2><span class="technical-label" id="sharpen-timing">2D IFFT</span></div>
+          <div class="filter-controls section-controls parameter-grid">
+            <fieldset class="parameter sharpening-parameter">
+              <legend>Sharpening Frequency Width</legend>
+              <label for="sharpen-sigma">Sigma (σ₂) <output id="sharpen-sigma-value" for="sharpen-sigma">30</output></label>
+              <input id="sharpen-sigma" type="range" min="1" max="200" step="1" value="30" aria-describedby="sharpen-sigma-scope">
+              <p id="sharpen-sigma-scope">僅影響 Sharpening，與上方 LPF / HPF 的 Sigma 獨立。</p>
+            </fieldset>
+            <fieldset class="parameter sharpening-parameter">
+              <legend>Sharpening Strength</legend>
+              <label for="alpha">Alpha (α) <output id="alpha-value" for="alpha">1.0</output></label>
+              <input id="alpha" type="range" min="0" max="3" step="0.1" value="1" aria-describedby="alpha-scope">
+              <p id="alpha-scope">僅影響 Sharpening。0 保留原圖；越大，加回的高頻響應越強。</p>
+            </fieldset>
+          </div>
+          <div class="filter-results sharpen-comparison" id="sharpen-results" aria-busy="true">
+            <article class="image-card"><div class="card-heading"><h3>Original</h3></div><div class="image-surface"><canvas id="original-sharpen" width="256" height="256" role="img" aria-label="Original：與上方相同的來源圖片" hidden></canvas></div><div class="filter-caption"><p>同一張來源，直接比較細節</p><span id="sharpen-dimensions">等待圖片</span></div></article>
+            <article class="image-card result-card"><div class="card-heading"><h3 class="color-b">Gaussian Sharpening</h3></div><div class="image-surface"><canvas id="sharpen" width="256" height="256" role="img" aria-label="Gaussian Sharpening High-boost 重建結果" aria-describedby="sharpen-sigma-scope alpha-scope" hidden></canvas></div><div class="filter-caption"><p>原圖 + Alpha (α) × 高頻響應</p><span>Re(IFFT) → clamp</span></div></article>
+          </div>
+        </section>
+      </div>
+
+      <details class="method-details"><summary>計算與顯示方式 <span aria-hidden="true">＋</span></summary><div class="method-content">
+        <p class="formula">H_LPF = G(σ₁)<br>H_HPF = 1 − G(σ₁)<br>H_Sharp = 1 + alpha × [1 − G(σ₂)]</p>
+        <p>G(σ) = exp[−(u² + v²) / (2σ²)]。兩區各自使用自己的 Sigma；R、G、B 分別將原始 Fourier 係數乘上對應的 Gaussian transfer function，再執行 IFFT，使用其實部。</p>
+        <p>兩個 Sigma 都以 1000 × 1000 參考圖的 frequency-bin units 表示；實際 N × N FFT 的 Sigma 為 Sigma × N / 1000。兩者初始值均為 30，Alpha 預設為 1.0。</p>
+        <p>LPF、Sharpening：round(clamp(Re(IFFT), 0, 255))。HPF：round(clamp(Re(IFFT) + 128, 0, 255))。原始數值保留正負值；不取絕對值，不逐圖正規化，顯示映射不改寫 IFFT 結果。Sharpening 不加 128。</p>
+        <p>FFT 使用週期邊界，圖片相對兩邊的差異也可能產生邊緣響應。超出 0–255 的顯示值會被裁切。</p>
+      </div></details>
+    </main>
+    <footer><span>FOURIER IMAGE LAB <span class="footer-dot">·</span> An experiment in seeing.</span><span>EXPERIMENT 003 <span class="footer-dot">/</span> GAUSSIAN FILTERING</span></footer>
+  </div>
+</body>
+</html>

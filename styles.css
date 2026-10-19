@@ -25,8 +25,9 @@ a { color: inherit; }
 .brand-light { color: var(--muted); }
 .local-badge { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; letter-spacing: .04em; }
 .status-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; flex-shrink: 0; }
-.page-nav { display: flex; align-items: center; gap: 16px; padding-top: 20px; font: 11px var(--mono); }
-.page-nav a { color: var(--muted); text-decoration: none; padding: 6px 0; }
+.page-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding-top: 20px; font: 11px var(--mono); }
+.page-nav a { color: var(--muted); text-decoration: none; padding: 6px 0; white-space: nowrap; }
+.page-nav .nav-number { font-size: 9px; margin-right: 4px; }
 .page-nav a:hover, .page-nav a[aria-current="page"] { color: var(--green); }
 .page-nav a[aria-current="page"] { border-bottom: 1px solid var(--green); }
 .page-nav > span { color: #617266; }
@@ -136,6 +137,8 @@ footer { display: flex; justify-content: space-between; gap: 16px; border-top: 1
   .upload-label > span { display: none; }
 }
 @media (max-width: 520px) {
+  .page-nav { column-gap: 16px; row-gap: 4px; }
+  .page-nav > span { display: none; }
   .page-shell { padding: 0 18px; }
   .topbar { padding: 19px 0; }
   .local-badge { font-size: 9px; gap: 5px; }
