@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640" role="img" aria-labelledby="title desc">
+  <title id="title">Mountain lake</title>
+  <desc id="desc">A golden sun above blue mountains, reflected in a turquoise lake beside dark evergreen trees.</desc>
+  <rect width="960" height="640" fill="#f3bc80"/>
+  <circle cx="620" cy="162" r="70" fill="#ffe9a8"/>
+  <path d="M0 310 190 115 360 300 510 88 740 320 860 196 960 285V430H0Z" fill="#6c8093"/>
+  <path d="m190 115 54 59-39-12-24 22-23-17-30 13Zm320-27 74 75-48-15-27 27-21-26-36 14Z" fill="#e6e4d4"/>
+  <path d="M0 410 228 261 412 408 638 229 840 405 960 336V475H0Z" fill="#345d69"/>
+  <path d="M0 402Q240 449 480 418T960 425V640H0Z" fill="#67a5a0"/>
+  <path d="m480 444 156-14 145 32-181 17Zm-32 62 167-15 191 24-225 19Zm-70 66 233-22 230 26-284 26Z" fill="#bad0ad"/>
+  <path d="M0 529Q160 465 307 533L379 640H0Z" fill="#233e3a"/>
+  <g fill="#19332f">
+    <path d="M185 324 132 422h28l-42 74h134l-40-74h28Z"/>
+    <path d="M285 370 243 449h22l-35 62h110l-34-62h22Z"/>
+    <path d="M746 402 718 458h16l-25 45h74l-24-45h15Z"/>
+  </g>
+  <path d="M181 473h9v74h-9Zm101 22h8v51h-8Zm461-5h7v33h-7Z" fill="#19332f"/>
+</svg>

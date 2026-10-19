@@ -118,7 +118,7 @@ async function upload(slot, fileName, eventType = 'change') {
   await waitFor(() => !doc.body.classList.contains('is-busy'), `upload ${fileName}`);
 }
 await test('實際頁面：預設兩張不同圖片自動完成', () => {
-  assert(get('filename-A').textContent === 'Monkey.jpg' && get('filename-B').textContent === 'Cat.jpg');
+  assert(get('filename-A').textContent === 'Mountain lake' && get('filename-B').textContent === 'Coastal lighthouse');
   assert(maxDifference(canvasPixels('image-A'), canvasPixels('image-B')) > 0);
   assert(!get('result-AB').hidden && !get('result-BA').hidden);
   assert(get('status').textContent.includes('交換完成'));

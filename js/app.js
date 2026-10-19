@@ -177,12 +177,12 @@ async function start() {
     setStatus('正在載入資料夾中的兩張範例圖片…');
     // A failed sample never prevents users from supplying their own images.
     const samples = await Promise.allSettled([
-      prepareImage(new URL('../Monkey.jpg', import.meta.url).href),
-      prepareImage(new URL('../Cat.jpg', import.meta.url).href),
+      prepareImage(new URL('../assets/sample-a.svg', import.meta.url).href),
+      prepareImage(new URL('../assets/sample-b.svg', import.meta.url).href),
     ]);
     for (const [index, slot] of ['A', 'B'].entries()) {
       if (samples[index].status === 'fulfilled') {
-        await installImage(slot, samples[index].value, index === 0 ? 'Monkey.jpg' : 'Cat.jpg');
+        await installImage(slot, samples[index].value, index === 0 ? 'Mountain lake' : 'Coastal lighthouse');
       }
     }
     await swap();

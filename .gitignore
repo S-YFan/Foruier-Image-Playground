@@ -12,3 +12,6 @@ playwright-report/
 *.log
 *.tmp
 *.temp
+# Local-only Python prototype inputs; never bundle them with the website.
+/Monkey.jpg
+/Cat.jpg

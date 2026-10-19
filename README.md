@@ -4,7 +4,7 @@
 
 Interactive Fourier experiments exploring image reconstruction, spectra, and frequency filtering.
 
-**FOURIER IMAGE LAB** 是使用 HTML、CSS 與原生 JavaScript 建立的互動式數位影像實驗網站，包含 RGB Fourier Phase Swap、Spectrum Lab 與 Gaussian Filtering。
+**FOURIER IMAGE LAB** 是使用 HTML、CSS 與原生 JavaScript 建立的互動式數位影像實驗網站，包含 RGB Fourier Phase Swap、Spectrum Lab、Gaussian Filtering 與 Partial Phase Region Swap。
 
 不使用前端框架、CDN、第三方執行期套件或後端服務。所有使用者圖片都在瀏覽器記憶體內解碼、運算與顯示，不會上傳至伺服器。
 
@@ -17,8 +17,11 @@ Interactive Fourier experiments exploring image reconstruction, spectra, and fre
 | Experiment 001 — RGB Fourier Phase Swap | RGB Fourier Magnitude / Phase Swap | [Open Experiment 001](https://s-yfan.github.io/fourier-phase-swap-playground/) |
 | Experiment 002 — Spectrum Lab | Fourier Spectrum & Geometric Experiments | [Open Spectrum Lab](https://s-yfan.github.io/fourier-phase-swap-playground/spectrum.html) |
 | Experiment 003 — Gaussian Filtering | Gaussian LPF / HPF and independent Sharpening | [Open Gaussian Filtering](https://s-yfan.github.io/fourier-phase-swap-playground/filtering.html) |
+| Experiment 004 — Partial Phase Region Swap | Keep A magnitude; replace phase inside selected frequency regions | [Open Partial Phase Region Swap](https://s-yfan.github.io/fourier-phase-swap-playground/region-swap.html) |
 
-三個頁面共享已驗證的 FFT / IFFT 數學核心，並透過網站上方的導航互通。Repository 名稱與 GitHub Pages URL 保持不變。
+Experiment 004 在本次 review branch 中可本機操作；正式網址需待 PR 合併與 GitHub Pages 發布後才可使用。
+
+四個頁面共享已驗證的 FFT / IFFT 數學核心，並透過網站上方的導航互通。Repository 名稱與 GitHub Pages URL 保持不變。新增頁面須在變更部署後才會出現在正式網站。
 
 ---
 
@@ -52,7 +55,7 @@ I_{BA}=\mathcal F^{-1}
 
 **Features**
 
-- 預載擁有者親自拍攝、授權使用的 `Monkey.jpg` 與 `Cat.jpg`，開啟網站後自動產生兩個交換結果。
+- 預載 repository 內的 SVG 範例 `assets/sample-a.svg`（Mountain lake）與 `assets/sample-b.svg`（Coastal lighthouse），開啟網站後自動產生兩個交換結果。
 - 支援 PNG、JPEG、WebP 上傳與拖放。
 - 更換任一圖片後自動重新計算。
 - 可使用 **Swap phases** 再次執行交換。
@@ -138,7 +141,7 @@ Phase Change 使用固定 0–2 顯示尺度，不隨每次操作重新進行 mi
 
 ### Experiment 003 — Gaussian Filtering
 
-兩區共用同一張 Monkey / Cat 範例照片或上傳圖片，所有結果來自真正的 RGB Fourier filtering 與 IFFT。
+兩區共用同一張 Mountain lake / Coastal lighthouse 範例或上傳圖片，所有結果來自真正的 RGB Fourier filtering 與 IFFT。
 
 | Section | Controls | Comparison |
 |---|---|---|
@@ -152,9 +155,32 @@ Phase Change 使用固定 0–2 顯示尺度，不隨每次操作重新進行 mi
 - 原始數值保留 Float64 實部／虛部。LPF／Sharpening 顯示為 `round(clamp(real,0,255))`；HPF 僅於顯示副本加 128，零響應顯示為灰色。不取絕對值或逐圖 normalization；Sharpening 不加 128。
 - 更換來源只解碼一次並計算 3 次通道 FFT2，同一份像素繪製兩個 Original。改 σ₁ 只做 LPF／HPF 的 6 次通道 IFFT2；改 σ₂／Alpha 只做 Sharpening 的 3 次，重用來源頻譜 cache。
 - 最多一個濾波請求運算中，每區保留一份最新參數；來源與區段各自的 revision 排除過期回應。參數變更不重繪另一區或重新解碼。
-- 保留照片原始尺寸與比例，FFT 前採共同的置中正方形裁切流程。使用週期邊界與 sRGB 像素尺度；顯示 clamp 可能裁掉極值與過衝。
+- 保留來源原始尺寸資訊與比例，FFT 前採共同的置中正方形裁切流程。使用週期邊界與 sRGB 像素尺度；顯示 clamp 可能裁掉極值與過衝。
 
 實作與驗證細節見 [PHASE3A_REPORT.md](PHASE3A_REPORT.md)。
+
+### Experiment 004 — Partial Phase Region Swap
+
+上傳圖片 A、B 或使用兩張 SVG 範例，固定 A 的 Fourier Magnitude，只在二值遮罩 `M=1` 的頻率位置改用 B 的 Phase：
+
+```text
+mixedPhase = M ? phaseB : phaseA
+mixedSpectrum = magnitudeA × exp(i × mixedPhase)
+result = real(IFFT(mixedSpectrum))
+```
+
+| Mask | Controls | Selection |
+|---|---|---|
+| Low-frequency Disk | Normalized radius 0.01 / 0.05 / 0.15 / 0.30 | Radius ≤ cutoff, including DC |
+| Opposite Quadrants | UL + LR / UR + LL / Both pairs | Opposite quadrant pairs; axes and Nyquist boundary lines keep A phase |
+| Periodic Stripes | Vertical / Horizontal; width 5 / 20 / 50 | Alternating bands using `floor(abs(bin)/width) % 2 == 0` |
+
+- 沿用網站共用的置中正方形裁切與 256 × 256 RGB 流程。Stripe width 使用實際 256 點 FFT 的整數頻率 bins，不套用 Gaussian Filtering 的 1000 點參考縮放。Disk radius 使用 cycles/pixel；0.30 在此為 76.8 bins。
+- 遮罩以 `fftshift` 顯示，黑色為 A Phase、白色為 B Phase；計算維持原生 FFT 索引。每個遮罩都滿足 `M[u,v] = M[-u mod N,-v mod N]`。
+- 分別顯示選取位置比例與 A 頻譜能量比例；能量包含 DC，A 完全為零時比例未定義。這兩個數字不代表感知相似度。
+- 重建保留有正負號的浮點實部，顯示副本才 clamp 至 0–255 並截斷小數，與 Python 的 `np.uint8(np.clip(...))` 一致；不取 IFFT 絕對值、不加入亮度偏移，也不做逐圖 normalization。只在精確零振幅頻率以 Phase 0 作為數值約定。
+
+獨立的 [Python reference](prototypes/phase4/README.md) 與 [數值驗證](prototypes/phase4/check_numerics.py) 仍可在本機執行。Python 預設為 1000 × 1000、直接縮放圖片；因此與網站的 256 × 256 置中裁切結果不應逐像素對比。`Monkey.jpg` / `Cat.jpg` 僅為使用者自行提供、Git 忽略的本機研究輸入，不是網站資源，也不會複製到公開 assets。
 
 ## 2. Run Locally
 
@@ -173,6 +199,7 @@ node scripts/serve.mjs
 | Playground | http://127.0.0.1:8080/ |
 | Spectrum Lab | http://127.0.0.1:8080/spectrum.html |
 | Gaussian Filtering | http://127.0.0.1:8080/filtering.html |
+| Partial Phase Region Swap | http://127.0.0.1:8080/region-swap.html |
 
 停止伺服器時按 `Ctrl+C`。
 
@@ -191,7 +218,7 @@ $env:PORT = 8081
 node scripts/serve.mjs
 ```
 
-**Note:** 請不要直接雙擊三個 HTML 頁面。專案使用原生 ES Modules 與 Module Web Workers，應透過 HTTP / HTTPS 開啟。
+**Note:** 請不要直接雙擊這些 HTML 頁面。專案使用原生 ES Modules 與 Module Web Workers，應透過 HTTP / HTTPS 開啟。
 
 Node.js 只用於本機靜態預覽。GitHub Pages 正式網站不需要 Node.js、Python、後端伺服器或額外的 Build Step。
 
@@ -204,10 +231,16 @@ fourier-phase-swap-playground/
 ├── index.html                  # Playground
 ├── spectrum.html               # Spectrum Lab
 ├── filtering.html              # Gaussian Filtering
+├── region-swap.html            # Partial Phase Region Swap
 ├── styles.css                  # Shared layout and visual style
 ├── spectrum.css                # Spectrum Lab styles
 ├── filtering.css               # Approved two-section filtering layout
+├── region-swap.css             # Partial region mask controls and comparison
 ├── favicon.svg
+│
+├── assets/
+│   ├── sample-a.svg            # Public Mountain lake illustration
+│   └── sample-b.svg            # Public Coastal lighthouse illustration
 │
 ├── js/
 │   ├── app.js                  # Playground UI and events
@@ -221,7 +254,10 @@ fourier-phase-swap-playground/
 │   ├── spectrum-app.js         # Spectrum Lab UI and events
 │   ├── filtering.js            # Gaussian numerical reconstruction and display copies
 │   ├── filtering-worker.js     # Shared source cache and selected IFFT outputs
-│   └── filtering-app.js        # Independent section states and synchronized Originals
+│   ├── filtering-app.js        # Independent section states and synchronized Originals
+│   ├── region-swap.js          # Symmetric masks and A-magnitude reconstruction
+│   ├── region-swap-worker.js   # Cached source spectra and partial swaps
+│   └── region-swap-app.js      # Image sources, mask controls and comparison UI
 │
 ├── scripts/
 │   └── serve.mjs               # Local static HTTP server
@@ -246,12 +282,12 @@ fourier-phase-swap-playground/
 │   ├── filtering-worker-adapter.mjs
 │   ├── filtering-browser.html
 │   ├── filtering-browser.js
+│   ├── region-swap*.test.mjs
 │   ├── test-data.js
 │   ├── fixtures/
 │   └── make-fixtures.py
 │
-├── Monkey.jpg
-├── Cat.jpg
+├── prototypes/phase4/          # Standalone local Python reference and numerical checks
 ├── Graph_Experiment_FT_IFT.py
 ├── package.json
 ├── .gitignore
@@ -262,13 +298,13 @@ fourier-phase-swap-playground/
 └── PHASE3A_REPORT.md
 ```
 
-`Graph_Experiment_FT_IFT.py` 保留歷史 Python 計算流程，範例檔名已改為 Monkey / Cat，正式網站不依賴它。
+`Graph_Experiment_FT_IFT.py` 保留歷史 Python 計算流程，正式網站不依賴它。研究用的 Monkey / Cat 照片留在本機，不隨 repository 公開；網站使用可公開的兩張 SVG 範例。
 
 ---
 
 ## 4. Image Preprocessing
 
-Playground 與 Gaussian Filtering 的圖片處理規則如下：
+Playground、Gaussian Filtering 與 Partial Phase Region Swap 的圖片處理規則如下：
 
 - 接受 PNG、JPEG、WebP，每張圖片大小上限為 25 MiB。
 - 先對原始圖片進行置中正方形裁切，再縮放至 256 × 256。
@@ -358,7 +394,7 @@ G(u,v)e^{i2\pi(ux+vy)/N}.
 
 頻域原始索引為 `v * N + u`，DC 位於 `[0,0]`。
 
-`fftshift()` 僅用於 Spectrum Lab 的視覺化副本，不會改動 FFT / IFFT 的原始索引排列。
+`fftshift()` 僅用於 Spectrum Lab 與 Phase Region Swap 遮罩的視覺化副本，不會改動 FFT / IFFT 的原始索引排列。
 
 ---
 
@@ -374,7 +410,7 @@ F(-u,-v)=F^*(u,v).
 
 因此，交換 Magnitude / Phase 後也必須保留共軛對稱，才能得到合理的實數 IFFT 重建結果。
 
-在建立 Magnitude / Phase 前，Playground 使用：
+在建立 Magnitude / Phase 前，Playground 與 Partial Phase Region Swap 使用：
 
 \[
 F_h[k]=
@@ -451,7 +487,7 @@ node --test tests/*.test.mjs
 npm test
 ```
 
-目前共 **48 項 Node 測試**，涵蓋：
+目前共 **56 項 Node 測試**，涵蓋：
 
 - FFT / IFFT 與獨立 DFT 的對照。
 - Forward / Inverse normalization。
@@ -465,7 +501,8 @@ npm test
 - Phase Difference / Change 的週期性、遮罩與顯示尺度。
 - 202 組 Translation 位移與真正 IFFT Reconstruction。
 - 靜態檔案及 GitHub Pages repository 子路徑。
-- Gaussian 獨立 DFT 對照、兩區參數獨立性、HPF 顯示副本、精確 IFFT 呼叫計數與照片參照。
+- Gaussian 獨立 DFT 對照、兩區參數獨立性、HPF 顯示副本、精確 IFFT 呼叫計數與公開範例參照。
+- Partial Phase Region Swap 遮罩對稱、A Magnitude 保留、實數 IFFT 與選取能量比例。
 
 ### Browser Tests
 
@@ -476,6 +513,7 @@ npm test
 | Phase 1 Browser Tests | 20 / 20 | [Run Tests](https://s-yfan.github.io/fourier-phase-swap-playground/tests/browser.html) |
 | Phase 2 Browser Tests | 19 / 19 | [Run Tests](https://s-yfan.github.io/fourier-phase-swap-playground/tests/spectrum-browser.html) |
 | Experiment 003 Browser Tests | 15 / 15 | [Run Tests](https://s-yfan.github.io/fourier-phase-swap-playground/tests/filtering-browser.html) |
+| Experiment 004 Browser Tests（本次本機驗證） | 8 / 8 | [Test page](tests/region-swap-browser.html) |
 
 本機預覽時也可以使用：
 
@@ -483,7 +521,10 @@ npm test
 http://127.0.0.1:8080/tests/browser.html
 http://127.0.0.1:8080/tests/spectrum-browser.html
 http://127.0.0.1:8080/tests/filtering-browser.html
+http://127.0.0.1:8080/tests/region-swap-browser.html
 ```
+
+Phase 4 integration 的本機 Chromium 驗證已通過全部 56 項 Node 檢查與四組瀏覽器檢查（20 / 19 / 15 / 8）。包含所有遮罩、兩種條紋方向、圖片替換與錯誤恢復、連續參數更新，以及 320px / 390px 手機版面。仍沿用 256 × 256 FFT；尚未驗證 Firefox、Safari 或實體手機。
 
 ### Release Verification — 2026-10-17
 
@@ -544,13 +585,7 @@ http://127.0.0.1:8080/fourier-phase-swap-playground/
 
 ## 10. Future Ideas
 
-Experiment 001、002、003 均已完成。以下為尚未實作的候選方向，不屬於本次 Phase 3 發布，開發順序與最終功能範圍尚未確定。
-
-### Phase Region Swap
-
-將 Fourier Phase Spectrum 分成二分區、四象限或其他區域，允許使用者選擇不同圖片的局部 Phase 進行交換。
-
-此功能需要正確處理實數影像的 Hermitian symmetry，包括共軛頻率配對、Nyquist 邊界與自共軛點。
+Experiment 001、002、003、004 的實作已包含在此 repository。以下為尚未實作的候選方向，開發順序與最終功能範圍尚未確定。
 
 ### Phase Interpolation
 

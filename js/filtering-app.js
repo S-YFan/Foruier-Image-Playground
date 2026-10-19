@@ -17,7 +17,8 @@ let processing = null;
 let lastGroup = 'sharpen';
 let failed = false;
 let sourceError = null;
-let selected = 'Monkey.jpg';
+let selected = 'sample-a.svg';
+const sampleLabels = { 'sample-a.svg': 'Mountain lake', 'sample-b.svg': 'Coastal lighthouse' };
 
 function setStatus(message, error = false) {
   $('status').textContent = message;
@@ -164,8 +165,8 @@ for (const [id, name, parameter] of [
 
 $('example').addEventListener('change', () => {
   const name = $('example').value;
-  if (name !== 'Monkey.jpg' && name !== 'Cat.jpg') return;
-  void loadSource(new URL(`../${name}`, import.meta.url).href, name, name);
+  if (!Object.hasOwn(sampleLabels, name)) return;
+  void loadSource(new URL(`../assets/${name}`, import.meta.url).href, sampleLabels[name], name);
 });
 
 $('upload').addEventListener('change', async () => {
@@ -197,5 +198,5 @@ try {
   });
   worker.addEventListener('error', failWorker);
   worker.addEventListener('messageerror', failWorker);
-  void loadSource(new URL('../Monkey.jpg', import.meta.url).href, 'Monkey.jpg', 'Monkey.jpg');
+  void loadSource(new URL('../assets/sample-a.svg', import.meta.url).href, sampleLabels['sample-a.svg'], 'sample-a.svg');
 } catch { failWorker(); }
