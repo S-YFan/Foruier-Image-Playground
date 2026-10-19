@@ -202,7 +202,7 @@ await test('兩頁實際導航與 Playground 預設重建在 repository 子路�
   await settle('return initialization');
   verifyTranslation(0, 0);
   assert(win.location.href === new URL('spectrum.html', base).href);
-  assert(doc.querySelector('.page-nav [aria-current="page"]').textContent === 'Spectrum Lab');
+  assert(doc.querySelector('.page-nav [aria-current="page"]').textContent.trim() === '002 Spectrum Lab');
 });
 await test('樣式、ES module 與 Worker 的實際資源載入均保留 repository 前綴', () => {
   const base = new URL('../', import.meta.url).href;

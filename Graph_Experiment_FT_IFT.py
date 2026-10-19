@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 imag1 = cv2.imread('Monkey.jpg')
-imag2 = cv2.imread('NSYSUlogo.jpg')
+imag2 = cv2.imread('Cat.jpg')
 
 imag1 = cv2.resize(imag1, (1000,1000))
 imag2 = cv2.resize(imag2, (1000,1000))

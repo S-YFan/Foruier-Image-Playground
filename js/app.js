@@ -178,11 +178,11 @@ async function start() {
     // A failed sample never prevents users from supplying their own images.
     const samples = await Promise.allSettled([
       prepareImage(new URL('../Monkey.jpg', import.meta.url).href),
-      prepareImage(new URL('../NSYSUlogo.jpg', import.meta.url).href),
+      prepareImage(new URL('../Cat.jpg', import.meta.url).href),
     ]);
     for (const [index, slot] of ['A', 'B'].entries()) {
       if (samples[index].status === 'fulfilled') {
-        await installImage(slot, samples[index].value, index === 0 ? 'Monkey.jpg' : 'NSYSUlogo.jpg');
+        await installImage(slot, samples[index].value, index === 0 ? 'Monkey.jpg' : 'Cat.jpg');
       }
     }
     await swap();

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A browser-local RGB Fourier phase swap experiment.",
+  "description": "FOURIER IMAGE LAB — Interactive Experiments in Fourier Image Processing.",
   "scripts": {
     "start": "node scripts/serve.mjs",
     "test": "node --test tests/*.test.mjs"
