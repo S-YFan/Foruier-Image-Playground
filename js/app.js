@@ -1,8 +1,10 @@
 import { IMAGE_SIZE } from './fourier.js';
 import { prepareImage } from './image.js';
+import { SAMPLE_IMAGES, DEFAULT_SAMPLES } from './samples.js';
 
 const $ = id => document.getElementById(id);
-const inputs = ['A', 'B'].map(slot => $(`upload-${slot}`));
+const inputs = ['A', 'B'].flatMap(slot => [$(`upload-${slot}`), $(`sample-${slot}`)]);
+const selected = { ...DEFAULT_SAMPLES };
 const ready = { A: false, B: false };
 const pending = new Map();
 let worker;
@@ -53,7 +55,7 @@ function draw(id, rgba) {
   canvas.hidden = false;
 }
 
-async function installImage(slot, prepared, filename) {
+async function installImage(slot, prepared, filename, selection = 'upload') {
   // Keep a display copy; transfer the other buffer instead of cloning it in transit.
   const displayPixels = prepared.rgba.slice();
   await request('image', { slot, rgba: prepared.rgba }, [prepared.rgba.buffer]);
@@ -62,6 +64,8 @@ async function installImage(slot, prepared, filename) {
   $(`filename-${slot}`).textContent = filename;
   $(`filename-${slot}`).title = filename;
   $(`dimensions-${slot}`).textContent = `${prepared.width} × ${prepared.height}`;
+  selected[slot] = selection;
+  $(`sample-${slot}`).value = selection;
   ready[slot] = true;
   // Never label old results as the reconstruction of newly loaded inputs.
   for (const result of ['AB', 'BA']) {
@@ -122,9 +126,24 @@ async function upload(slot, file) {
   }
 }
 
+async function loadSample(slot, key) {
+  if (busy || workerFailed || !Object.hasOwn(SAMPLE_IMAGES, key)) return;
+  setBusy(true);
+  const sample = SAMPLE_IMAGES[key];
+  setStatus(`正在載入 ${sample.name}，並計算 RGB 頻譜…`);
+  try {
+    await installImage(slot, await prepareImage(sample.url), sample.name, key);
+    await swap();
+  } catch (error) {
+    $(`sample-${slot}`).value = selected[slot];
+    setStatus(error.message, true);
+  } finally { setBusy(false); }
+}
+
 for (const slot of ['A', 'B']) {
   const input = $(`upload-${slot}`);
   const card = $(`card-${slot}`);
+  $(`sample-${slot}`).addEventListener('change', () => void loadSample(slot, $(`sample-${slot}`).value));
   input.addEventListener('change', () => {
     const file = input.files[0];
     input.value = ''; // Allow selecting the same file again.
@@ -177,12 +196,13 @@ async function start() {
     setStatus('正在載入資料夾中的兩張範例圖片…');
     // A failed sample never prevents users from supplying their own images.
     const samples = await Promise.allSettled([
-      prepareImage(new URL('../Monkey.jpg', import.meta.url).href),
-      prepareImage(new URL('../Cat.jpg', import.meta.url).href),
+      prepareImage(SAMPLE_IMAGES[DEFAULT_SAMPLES.A].url),
+      prepareImage(SAMPLE_IMAGES[DEFAULT_SAMPLES.B].url),
     ]);
     for (const [index, slot] of ['A', 'B'].entries()) {
       if (samples[index].status === 'fulfilled') {
-        await installImage(slot, samples[index].value, index === 0 ? 'Monkey.jpg' : 'Cat.jpg');
+        const key = DEFAULT_SAMPLES[slot];
+        await installImage(slot, samples[index].value, SAMPLE_IMAGES[key].name, key);
       }
     }
     await swap();

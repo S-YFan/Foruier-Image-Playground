@@ -86,8 +86,8 @@ async function fixture(name) {
   return new win.File([await response.blob()], name, { type: response.headers.get('content-type') });
 }
 
-await test('Monkey 預設照片、原始尺寸與三個實際 IFFT 結果', async () => {
-  assert(get('filename').textContent === 'Monkey.jpg');
+await test('Mountain lake 預設範例、原始尺寸與三個實際 IFFT 結果', async () => {
+  assert(get('filename').textContent === 'Mountain lake');
   assert(get('sigma').value === '30' && get('sharpen-sigma').value === '30' && get('alpha').value === '1');
   assert(get('sigma').closest('section') !== get('alpha').closest('section'));
   assert(!get('sigma').closest('section').querySelector('#alpha'));
@@ -98,26 +98,34 @@ await test('Monkey 預設照片、原始尺寸與三個實際 IFFT 結果', asyn
   assert(get('sharpen').getAttribute('aria-describedby').includes('sharpen-sigma-scope'));
   assert(Array.from(get('pass-results').querySelectorAll('canvas')).map(canvas => canvas.id).join() === 'original,lpf,hpf');
   assert(Array.from(get('sharpen-results').querySelectorAll('canvas')).map(canvas => canvas.id).join() === 'original-sharpen,sharpen');
-  const image = await prepareImage(new URL('../Monkey.jpg', import.meta.url).href);
+  const image = await prepareImage(new URL('../assets/sample-a.svg', import.meta.url).href);
   assert(maxDifference(pixels('original'), image.rgba) === 0);
   assert(get('dimensions').textContent === `${image.width} × ${image.height}`);
-  metrics.monkeyDimensions = [image.width, image.height];
+  metrics.sampleADimensions = [image.width, image.height];
   compareCurrent();
 });
-await test('Cat 範例切換、保留原始比例的裁切與重建', async () => {
+await test('Coastal lighthouse 範例切換、保留原始比例的裁切與重建', async () => {
   const before = pixels('original');
   const decodesBefore = metrics.decodes, requestsBefore = metrics.requests.length;
-  await select('Cat.jpg');
+  await select('sample-b.svg');
   assert(metrics.decodes === decodesBefore + 1, 'both previews must share one decode');
   const requests = metrics.requests.slice(requestsBefore);
   assert(requests.filter(request => request.type === 'image').length === 1, 'one source FFT request');
   assert(requests.filter(request => request.type === 'filter').map(request => request.group).sort().join() === 'pass,sharpen');
-  const image = await prepareImage(new URL('../Cat.jpg', import.meta.url).href);
-  assert(get('filename').textContent === 'Cat.jpg');
+  const image = await prepareImage(new URL('../assets/sample-b.svg', import.meta.url).href);
+  assert(get('filename').textContent === 'Coastal lighthouse');
   assert(maxDifference(before, pixels('original')) > 0);
   assert(maxDifference(pixels('original'), image.rgba) === 0);
-  metrics.catDimensions = [image.width, image.height];
+  metrics.sampleBDimensions = [image.width, image.height];
   compareCurrent();
+  for (const name of ['Monkey.jpg', 'Cat.jpg']) {
+    await select(name);
+    const photograph = await prepareImage(new URL(`../${name}`, import.meta.url).href);
+    assert(get('filename').textContent === name);
+    assert(maxDifference(pixels('original'), photograph.rgba) === 0);
+    compareCurrent();
+  }
+  await select('sample-b.svg');
 });
 await test('alpha = 0 精確重現來源；alpha 只影響 Sharpening', async () => {
   const low = pixels('lpf'), high = pixels('hpf');
@@ -190,13 +198,13 @@ await test('另一區的輸入不使進行中的重建失效，兩區各運算�
   for (const type of ['lpf', 'hpf', 'sharpen']) assert(metrics.renders[type] === renders[type] + 1, type);
   compareCurrent();
 });
-await test('濾波期間更換來源與參數，不顯示前一張照片的過期結果', async () => {
+await test('濾波期間更換來源與參數，不顯示前一張圖片的過期結果', async () => {
   input('sigma', 40);
-  get('example').value = 'Monkey.jpg';
+  get('example').value = 'sample-a.svg';
   get('example').dispatchEvent(new win.Event('change', { bubbles: true }));
   input('sigma', 60); input('sharpen-sigma', 70); input('alpha', 1);
   await waitFor(settled, 'source race');
-  assert(get('filename').textContent === 'Monkey.jpg');
+  assert(get('filename').textContent === 'Mountain lake');
   assert(get('pass-results').dataset.sigma === '60' && get('sharpen-results').dataset.sigma === '70');
   compareCurrent();
 });
@@ -268,13 +276,13 @@ await test('1040 / 390 / 320px 無溢出，寬螢幕為 Original | LPF | HPF 與
   }
   frame.style.width = '1040px';
 });
-await test('相對資源與三頁導航適用 repository 子路徑', () => {
+await test('相對資源與四頁導航適用 repository 子路徑', () => {
   const base = new URL('../', import.meta.url).href;
   const resources = win.performance.getEntriesByType('resource').map(entry => entry.name).filter(url => !url.startsWith('blob:'));
   assert(resources.some(url => url.endsWith('/js/filtering-worker.js')));
-  assert(resources.some(url => url.endsWith('/Cat.jpg')));
+  assert(resources.some(url => url.endsWith('/assets/sample-b.svg')));
   assert(resources.every(url => url.startsWith(base)));
-  for (const page of ['index.html', 'spectrum.html', 'filtering.html']) assert(doc.querySelector(`.page-nav a[href="./${page}"]`));
+  for (const page of ['index.html', 'spectrum.html', 'filtering.html', 'region-swap.html']) assert(doc.querySelector(`.page-nav a[href="./${page}"]`));
   assert(doc.querySelector('.page-nav [aria-current="page"]').textContent.trim() === '003 Gaussian Filtering');
 });
 
@@ -282,12 +290,13 @@ win.URL.createObjectURL = createURL; win.URL.revokeObjectURL = revokeURL;
 win.HTMLImageElement.prototype.decode = decode;
 win.Worker.prototype.postMessage = postMessage;
 win.CanvasRenderingContext2D.prototype.putImageData = putImageData;
-await test('三個 Experiment 的六個方向實際導航、公開命名與窄螢幕連結', async () => {
+await test('既有 Experiment 實際導航、四頁公開命名與窄螢幕連結', async () => {
   const base = new URL('../', import.meta.url);
   const experiments = [
     ['index.html', '001', 'RGB Fourier Phase Swap'],
     ['spectrum.html', '002', 'Spectrum Lab'],
     ['filtering.html', '003', 'Gaussian Filtering'],
+    ['region-swap.html', '004', 'Partial Phase Region Swap'],
   ];
   const inspected = new Set();
   metrics.navigation = [];
@@ -302,7 +311,7 @@ await test('三個 Experiment 的六個方向實際導航、公開命名與窄�
     assert(current.querySelector('.eyebrow > span').textContent === `EXPERIMENT ${number}`);
     assert(!/EXPERIMENT 003A|PHASE 3A|Phase 3A/.test(current.body.textContent));
     const links = Array.from(current.querySelectorAll('.page-nav a'));
-    assert(links.length === 3);
+    assert(links.length === 4);
     for (const [i, [file, id, title]] of experiments.entries()) {
       assert(links[i].href === new URL(file, base).href);
       assert(links[i].textContent.trim() === `${id} ${title}`);

@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101513">
+  <meta name="application-name" content="FOURIER IMAGE LAB">
+  <meta name="description" content="FOURIER IMAGE LAB：固定 Image A 的 Fourier 振幅，以低頻圓盤、成對象限或週期條紋選擇 Image B 的相位，觀察真正的 RGB IFFT 重建。">
+  <title>Experiment 004 — Partial Phase Region Swap — FOURIER IMAGE LAB</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./region-swap.css">
+  <script type="module" src="./js/region-swap-app.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="FOURIER IMAGE LAB 首頁"><span class="brand-mark" aria-hidden="true">ƒ</span><span>FOURIER IMAGE LAB<span class="brand-divider">/</span><span class="brand-light">REGION SWAP</span></span></a>
+      <span class="local-badge"><span class="status-dot"></span> 全程在你的瀏覽器運算</span>
+    </header>
+    <nav class="page-nav" aria-label="實驗室頁面">
+      <a href="./index.html"><span class="nav-number">001</span> RGB Fourier Phase Swap</a><span aria-hidden="true">/</span>
+      <a href="./spectrum.html"><span class="nav-number">002</span> Spectrum Lab</a><span aria-hidden="true">/</span>
+      <a href="./filtering.html"><span class="nav-number">003</span> Gaussian Filtering</a><span aria-hidden="true">/</span>
+      <a href="./region-swap.html" aria-current="page"><span class="nav-number">004</span> Partial Phase Region Swap</a>
+    </nav>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="eyebrow"><span>EXPERIMENT 004</span><span class="eyebrow-line"></span> FREQUENCY REGIONS · SPATIAL STRUCTURE</p>
+          <h1 id="page-title">Partial Phase<br><span>Region Swap</span><span class="title-dot">.</span></h1>
+          <p class="subtitle" lang="en">Interactive Experiments in Fourier Image Processing</p>
+          <p class="intro-description">固定 A 的振幅，只在選定的頻率區域換上 B 的相位。改變遮罩，看看重建結構如何變化。</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="controls-heading">
+        <div class="section-heading"><h2 id="controls-heading"><span class="section-number">01</span> 選擇頻率區域 <span class="heading-en">PHASE MASK</span></h2><span class="technical-label">256 × 256 · RGB</span></div>
+        <div class="region-controls">
+          <div class="mask-type-control"><label for="mask-type">遮罩類型</label><select id="mask-type"><option value="stripes">Periodic Stripes · 週期條紋</option><option value="disk">Low-Frequency Disk · 低頻圓盤</option><option value="quadrants">Quadrant Pairs · 成對象限</option></select></div>
+          <fieldset id="disk-controls" class="region-parameter" hidden>
+            <legend>低頻圓盤</legend>
+            <label for="cutoff">截止半徑 <output id="cutoff-value" for="cutoff">0.15</output></label>
+            <input id="cutoff" type="range" min="0.01" max="0.50" step="0.01" value="0.15" list="cutoff-marks" aria-describedby="cutoff-help">
+            <datalist id="cutoff-marks"><option value="0.01"></option><option value="0.05"></option><option value="0.15"></option><option value="0.30"></option></datalist>
+            <p id="cutoff-help">cycles/pixel；軸向 Nyquist = 0.5。可比較 0.01、0.05、0.15、0.30。</p>
+          </fieldset>
+          <fieldset id="quadrants-controls" class="region-parameter" hidden>
+            <legend>成對象限</legend>
+            <label for="quadrants">選擇象限組合</label>
+            <select id="quadrants" aria-describedby="quadrants-help"><option value="ul-lr">左上 + 右下 · UL + LR</option><option value="ur-ll">右上 + 左下 · UR + LL</option><option value="both">兩組皆選 · Both pairs</option></select>
+            <p id="quadrants-help">座標軸與 Nyquist 邊界保留 A 的相位，因此兩組皆選仍非完整交換。</p>
+          </fieldset>
+          <fieldset id="stripes-controls" class="region-parameter">
+            <legend>週期條紋</legend>
+            <div class="stripe-options"><div><label for="orientation">方向</label><select id="orientation"><option value="vertical">垂直 · Vertical</option><option value="horizontal">水平 · Horizontal</option></select></div><div class="stripe-width"><label for="stripe-width">條紋寬度 <output id="stripe-width-value" for="stripe-width">20</output></label><input id="stripe-width" type="range" min="1" max="128" step="1" value="20" list="stripe-marks" aria-describedby="stripe-help"><datalist id="stripe-marks"><option value="5"></option><option value="20"></option><option value="50"></option></datalist></div></div>
+            <p id="stripe-help">單位是 256 × 256 頻譜的頻率格，並非原圖像素。可比較 5、20、50。</p>
+          </fieldset>
+        </div>
+        <p class="region-note"><strong>這是 Fourier 頻域的區域交換。</strong>遮罩不會切割或貼上原圖的矩形區塊。白色選 B 的相位，黑色保留 A 的相位；振幅始終來自 A。</p>
+      </section>
+
+      <section aria-labelledby="comparison-heading">
+        <div class="section-heading"><h2 id="comparison-heading"><span class="section-number">02</span> 比較影像與重建 <span class="heading-en">RECONSTRUCTION</span></h2><span class="technical-label" id="timing">2D IFFT</span></div>
+        <div class="region-grid" id="comparison" aria-busy="true">
+          <article class="image-card source-card" id="card-A">
+            <div class="card-heading"><h3><span class="letter-badge color-a">A</span> Image A</h3><label class="upload-label" for="upload-A">上傳</label><input class="file-input" id="upload-A" type="file" accept="image/png,image/jpeg,image/webp" aria-label="上傳 Image A" aria-describedby="upload-policy"></div>
+            <label class="image-surface source-surface" for="upload-A"><canvas id="image-A" width="256" height="256" role="img" aria-label="Image A：振幅來源" hidden></canvas><span class="empty-state" id="empty-A">載入 A…</span><span class="image-hover" aria-hidden="true">替換 Image A ↗</span></label>
+            <div class="image-caption"><span id="filename-A">Mountain lake</span><span id="dimensions-A">—</span></div>
+            <div class="sample-picker"><label for="sample-A">範例圖片 A</label><select id="sample-A"><option value="sample-a.svg">Mountain lake · 山景</option><option value="sample-b.svg">Coastal lighthouse · 燈塔</option><option value="Monkey.jpg">Monkey.jpg</option><option value="Cat.jpg">Cat.jpg</option><option value="upload" disabled hidden>自選圖片</option></select></div>
+            <button id="reset-A" class="sample-reset" type="button">還原範例 A</button>
+          </article>
+          <article class="image-card source-card" id="card-B">
+            <div class="card-heading"><h3><span class="letter-badge color-b">B</span> Image B</h3><label class="upload-label" for="upload-B">上傳</label><input class="file-input" id="upload-B" type="file" accept="image/png,image/jpeg,image/webp" aria-label="上傳 Image B" aria-describedby="upload-policy"></div>
+            <label class="image-surface source-surface" for="upload-B"><canvas id="image-B" width="256" height="256" role="img" aria-label="Image B：選定區域的相位來源" hidden></canvas><span class="empty-state" id="empty-B">載入 B…</span><span class="image-hover" aria-hidden="true">替換 Image B ↗</span></label>
+            <div class="image-caption"><span id="filename-B">Coastal lighthouse</span><span id="dimensions-B">—</span></div>
+            <div class="sample-picker"><label for="sample-B">範例圖片 B</label><select id="sample-B"><option value="sample-a.svg">Mountain lake · 山景</option><option value="sample-b.svg" selected>Coastal lighthouse · 燈塔</option><option value="Monkey.jpg">Monkey.jpg</option><option value="Cat.jpg">Cat.jpg</option><option value="upload" disabled hidden>自選圖片</option></select></div>
+            <button id="reset-B" class="sample-reset" type="button">還原範例 B</button>
+          </article>
+          <article class="image-card result-card">
+            <div class="card-heading"><h3>Phase Swap Mask</h3><span class="result-index">M(u,v)</span></div>
+            <div class="image-surface mask-surface"><canvas id="phase-mask" width="256" height="256" role="img" aria-label="置中顯示的 Fourier 頻率遮罩：白色選 B 的相位，黑色選 A 的相位" hidden></canvas><span class="empty-state" id="empty-mask">等待頻譜</span></div>
+            <div class="region-caption"><p id="mask-caption">Periodic Stripes</p><span><i class="mask-key black"></i>A phase <i class="mask-key white"></i>B phase</span><span>零頻率在中央 · 僅顯示使用 fftshift</span></div>
+          </article>
+          <article class="image-card result-card">
+            <div class="card-heading"><h3>Reconstructed</h3><span class="result-index">IFFT</span></div>
+            <div class="image-surface"><canvas id="reconstruction" width="256" height="256" role="img" aria-label="Image A 振幅與選擇性替換相位的重建結果" hidden></canvas><span class="empty-state" id="empty-result">等待重建</span></div>
+            <div class="region-caption"><p>A magnitude · selected B phase</p><span id="clipping">等待重建</span><span>RGB · 固定 0–255 顯示範圍</span></div>
+          </article>
+        </div>
+        <p class="upload-policy" id="upload-policy">支援上傳與拖放 PNG、JPEG、WebP，每張最多 25 MB。共用處理：置中正方形裁切 → 256 × 256，透明處以白色合成；圖片不會上傳伺服器。</p>
+        <div class="status-line"><span class="status-dot"></span><p id="status" role="status" aria-live="polite">正在載入範例與啟動運算…</p></div>
+        <noscript><p class="error-note">這個實驗需要啟用 JavaScript，並透過 HTTP / HTTPS 開啟。</p></noscript>
+      </section>
+
+      <div class="region-metrics" aria-label="遮罩選取比例"><div><span>交換頻率位置</span><strong id="selected-fraction">—</strong></div><div><span>選取位置的 A 頻譜能量</span><strong id="energy-fraction">—</strong></div><p>位置比例與能量比例是不同的量。能量加總三個通道，包含 DC；能量比例不等於可辨識結構的比例。</p></div>
+      <details class="method-details"><summary>計算與顯示方式 <span aria-hidden="true">＋</span></summary><div class="method-content"><p class="formula">F_mix = |F_A| · exp(i · where(M, phase_B, phase_A))<br>I_mix = real(IFFT(F_mix))</p><p>三個 RGB 通道分別計算。遮罩使用原生 FFT 索引，符合 M(u,v) = M(−u,−v) 的模數配對；頻譜分析會校正浮點共軛誤差，零振幅的相位約定為 0。只在最後顯示時裁切到 0–255 並取整數，不取重建絕對值、不做個別對比正規化。</p><p>圓盤半徑為 √[(u/N)² + (v/N)²]；條紋由 floor(|u|/width) 或 floor(|v|/width) 的偶數頻帶選取 B。象限遮罩保留座標軸與 Nyquist 列／行的 A 相位。</p><p id="validation" class="validation">數值檢查會隨每次重建更新。</p></div></details>
+    </main>
+    <footer><span>FOURIER IMAGE LAB <span class="footer-dot">·</span> Interactive Experiments in Fourier Image Processing</span><span>004 / PARTIAL PHASE REGION SWAP</span></footer>
+  </div>
+</body>
+</html>

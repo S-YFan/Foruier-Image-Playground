@@ -1,0 +1,45 @@
+.intro { padding-block: 36px 30px; }
+.region-controls { display: grid; grid-template-columns: minmax(220px, .85fr) minmax(0, 1.5fr); gap: 28px; padding: 22px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; align-items: start; }
+.region-controls label { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px; }
+.region-controls select { width: 100%; min-width: 0; margin-top: 10px; color: var(--text); background: var(--surface); border: 1px solid #465348; border-radius: 5px; padding: 9px; font: 11px/1.5 var(--mono); }
+.region-controls input[type="range"] { display: block; width: 100%; margin: 14px 0 10px; accent-color: var(--green); cursor: pointer; }
+.region-parameter { border: 0; min-width: 0; margin: 0; padding: 0; }
+.region-parameter legend { color: var(--green); font: 10px var(--mono); margin-bottom: 10px; padding: 0; }
+.region-parameter output { color: var(--green); font-family: var(--mono); }
+.region-parameter p, .region-note { font-size: 11px; color: var(--muted); line-height: 1.8; margin: 10px 0 0; }
+.region-note { margin-block: 13px 26px; }
+.region-note strong { color: #cfdfd1; font-weight: 500; }
+.stripe-options { display: grid; grid-template-columns: minmax(130px, 1fr) minmax(0, 1.5fr); gap: 20px; }
+.region-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.region-grid .card-heading { padding: 14px 11px; gap: 6px; min-height: 57px; }
+.region-grid h3 { font-size: 11px; gap: 7px; }
+.region-grid .upload-label { padding: 5px 7px; font-size: 10px; }
+.region-grid .image-surface { width: calc(100% - 20px); margin: 0 10px; aspect-ratio: 1; }
+.region-grid .image-caption { margin: 11px; flex-wrap: wrap; gap: 5px; font-size: 9px; }
+.region-grid .image-caption span:first-child { overflow-wrap: anywhere; }
+.region-grid .result-index { font-size: 8px; }
+.region-grid .empty-state { font-size: 11px; }
+.mask-surface { background: #000; }
+.mask-surface canvas { image-rendering: pixelated; }
+.region-caption { padding: 11px; font-size: 10px; line-height: 1.7; }
+.region-caption p { margin: 0 0 4px; color: #cfdfd1; }
+.region-caption > span { display: block; color: var(--muted); font: 9px/1.8 var(--mono); }
+.mask-key { display: inline-block; width: 8px; height: 8px; border: 1px solid #788b7d; margin-inline: 3px; }
+.mask-key.black { background: #000; }
+.mask-key.white { background: #fff; }
+.sample-reset { display: block; color: var(--muted); font: 10px var(--mono); background: none; border: 0; border-bottom: 1px solid #526256; margin: 0 11px 14px; padding: 3px 0; }
+.sample-reset:hover { color: var(--green); }
+.region-grid .sample-picker { margin: 0 10px 12px; }
+.region-grid .sample-picker select { font-size: 10px; }
+.region-grid[aria-busy="true"] .result-card { opacity: .45; }
+.region-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; background: var(--panel); border: 1px solid var(--line); padding: 18px 22px; border-radius: 9px; margin: 22px 0; }
+.region-metrics > div { display: flex; flex-direction: column; gap: 7px; }
+.region-metrics span { color: var(--muted); font-size: 11px; }
+.region-metrics strong { color: var(--green); font: 23px var(--mono); }
+.region-metrics p { grid-column: 1 / -1; color: var(--muted); font-size: 10px; line-height: 1.8; margin: 0; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--green); outline-offset: 4px; }
+.source-card:focus-within .upload-label { outline: 1px solid var(--green); }
+button:disabled, input:disabled, select:disabled { cursor: default; opacity: .5; }
+@media (max-width: 1000px) { .region-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .region-grid .image-surface { max-width: 300px; margin-inline: auto; } }
+@media (max-width: 640px) { .region-controls { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 17px; } .stripe-options { gap: 14px; } .intro { padding-block: 30px; } .region-grid { gap: 12px; } }
+@media (max-width: 380px) { .region-grid .card-heading { padding: 10px 8px; flex-wrap: wrap; min-height: 66px; align-content: center; } .region-grid .result-index { display: none; } .stripe-options { grid-template-columns: minmax(0, 1fr); } .region-metrics { padding: 16px; gap: 10px; } .region-metrics strong { font-size: 20px; } }

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640" role="img" aria-labelledby="title desc">
+  <title id="title">Coastal lighthouse</title>
+  <desc id="desc">A red and cream lighthouse on a rocky green coast above a dark blue sea, with pale clouds and white waves.</desc>
+  <rect width="960" height="640" fill="#9dc1d2"/>
+  <path d="M86 127h228m-171 23h211m293-43h176m-135 22h196" fill="none" stroke="#e4e9df" stroke-width="18" stroke-linecap="round"/>
+  <path d="M0 337Q240 318 480 340T960 331V640H0Z" fill="#31647d"/>
+  <path d="M0 426q110-20 215 0m-156 89q130-21 244 0m246-79q128-21 259 0m-297 98q140-22 316 0m-527 61q109-17 212 0" fill="none" stroke="#7caaae" stroke-width="7"/>
+  <path d="m370 371 156-45 216 47 218 94V640H246l72-152Z" fill="#5a7162"/>
+  <path d="m346 419 190-57 146 36 115 59 163 26V640H247l70-122 113-29Z" fill="#50606a"/>
+  <path d="m348 421 60 28-39 57-62 15m226-159 13 76 87 48-15 154m91-223-61 84 64 91" fill="none" stroke="#7e8a84" stroke-width="11"/>
+  <path d="m459 363 26-191h94l28 191Z" fill="#f3e5c7"/>
+  <path d="m477 229 8-57h94l9 57Zm-15 111 8-57h126l8 57Z" fill="#bc5547"/>
+  <path d="M476 149h112v31H476Z" fill="#263b49"/>
+  <path d="M489 120h85v32h-85Z" fill="#f5ca76"/>
+  <path d="m476 122 55-40 56 40Z" fill="#bc5547"/>
+  <path d="M513 309h37v54h-37Zm5-118h24v28h-24Z" fill="#263b49"/>
+  <path d="m249 596 59-77 66-15m255 122 33-35 101 6m-90-74 64-23 75 19" fill="none" stroke="#e0e3cf" stroke-width="10" stroke-linecap="round"/>
+  <path d="m292 235 19-9 19 9m324-42 16-8 16 8" fill="none" stroke="#365367" stroke-width="4" stroke-linecap="round"/>
+</svg>

@@ -4,7 +4,7 @@ import { spawn } from 'node:child_process';
 import { readFile, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-test('all three experiments, numbered navigation and module/worker graph load under a repository subpath', { timeout: 15000 }, async t => {
+test('all four experiments, numbered navigation and module/worker graph load under a repository subpath', { timeout: 15000 }, async t => {
   const root = new URL('../', import.meta.url);
   const basePath = '/fourier-phase-swap-playground/';
   const server = spawn(process.execPath, ['scripts/serve.mjs'], {
@@ -22,6 +22,7 @@ test('all three experiments, numbered navigation and module/worker graph load un
     ['index.html', '001', 'RGB Fourier Phase Swap'],
     ['spectrum.html', '002', 'Spectrum Lab'],
     ['filtering.html', '003', 'Gaussian Filtering'],
+    ['region-swap.html', '004', 'Partial Phase Region Swap'],
   ];
   const visited = new Set();
   async function visit(path) {

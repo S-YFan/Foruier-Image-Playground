@@ -117,11 +117,20 @@ async function upload(slot, fileName, eventType = 'change') {
   }
   await waitFor(() => !doc.body.classList.contains('is-busy'), `upload ${fileName}`);
 }
-await test('實際頁面：預設兩張不同圖片自動完成', () => {
-  assert(get('filename-A').textContent === 'Monkey.jpg' && get('filename-B').textContent === 'Cat.jpg');
+await test('實際頁面：預設兩張不同圖片自動完成，四張範例皆可切換', async () => {
+  assert(get('filename-A').textContent === 'Mountain lake' && get('filename-B').textContent === 'Coastal lighthouse');
   assert(maxDifference(canvasPixels('image-A'), canvasPixels('image-B')) > 0);
   assert(!get('result-AB').hidden && !get('result-BA').hidden);
   assert(get('status').textContent.includes('交換完成'));
+  for (const slot of ['A', 'B']) {
+    for (const [key, name] of [['sample-a.svg', 'Mountain lake'], ['sample-b.svg', 'Coastal lighthouse'], ['Monkey.jpg', 'Monkey.jpg'], ['Cat.jpg', 'Cat.jpg']]) {
+      get(`sample-${slot}`).value = key;
+      get(`sample-${slot}`).dispatchEvent(new win.Event('change', { bubbles: true }));
+      await waitFor(() => !doc.body.classList.contains('is-busy'), `sample ${slot}/${key}`);
+      assert(get(`filename-${slot}`).textContent === name);
+      assert(!get('result-AB').hidden && !get('result-BA').hidden);
+    }
+  }
 });
 await test('上傳 PNG／JPEG／WebP：同圖結果與畫面來源逐像素相同', async () => {
   for (const file of ['rgb.png', 'rgb.jpg', 'rgb.webp']) {
