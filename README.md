@@ -55,7 +55,7 @@ I_{BA}=\mathcal F^{-1}
 
 **Features**
 
-- 預載 repository 內的 SVG 範例 `assets/sample-a.svg`（Mountain lake）與 `assets/sample-b.svg`（Coastal lighthouse），開啟網站後自動產生兩個交換結果。
+- 保留四張網站範例：`assets/sample-a.svg`（Mountain lake／山景）、`assets/sample-b.svg`（Coastal lighthouse／燈塔）、`Monkey.jpg`、`Cat.jpg`。A、B 各自可選任一張，預設為山景與燈塔，開啟後自動產生兩個交換結果。
 - 支援 PNG、JPEG、WebP 上傳與拖放。
 - 更換任一圖片後自動重新計算。
 - 可使用 **Swap phases** 再次執行交換。
@@ -141,7 +141,7 @@ Phase Change 使用固定 0–2 顯示尺度，不隨每次操作重新進行 mi
 
 ### Experiment 003 — Gaussian Filtering
 
-兩區共用同一張 Mountain lake / Coastal lighthouse 範例或上傳圖片，所有結果來自真正的 RGB Fourier filtering 與 IFFT。
+兩區共用同一張山景、燈塔、Monkey.jpg、Cat.jpg 範例或上傳圖片，所有結果來自真正的 RGB Fourier filtering 與 IFFT。
 
 | Section | Controls | Comparison |
 |---|---|---|
@@ -161,7 +161,7 @@ Phase Change 使用固定 0–2 顯示尺度，不隨每次操作重新進行 mi
 
 ### Experiment 004 — Partial Phase Region Swap
 
-上傳圖片 A、B 或使用兩張 SVG 範例，固定 A 的 Fourier Magnitude，只在二值遮罩 `M=1` 的頻率位置改用 B 的 Phase：
+上傳圖片 A、B，或各自從山景、燈塔、Monkey.jpg、Cat.jpg 四張範例中選擇；固定 A 的 Fourier Magnitude，只在二值遮罩 `M=1` 的頻率位置改用 B 的 Phase：
 
 ```text
 mixedPhase = M ? phaseB : phaseA
@@ -180,7 +180,7 @@ result = real(IFFT(mixedSpectrum))
 - 分別顯示選取位置比例與 A 頻譜能量比例；能量包含 DC，A 完全為零時比例未定義。這兩個數字不代表感知相似度。
 - 重建保留有正負號的浮點實部，顯示副本才 clamp 至 0–255 並截斷小數，與 Python 的 `np.uint8(np.clip(...))` 一致；不取 IFFT 絕對值、不加入亮度偏移，也不做逐圖 normalization。只在精確零振幅頻率以 Phase 0 作為數值約定。
 
-獨立的 [Python reference](prototypes/phase4/README.md) 與 [數值驗證](prototypes/phase4/check_numerics.py) 仍可在本機執行。Python 預設為 1000 × 1000、直接縮放圖片；因此與網站的 256 × 256 置中裁切結果不應逐像素對比。`Monkey.jpg` / `Cat.jpg` 僅為使用者自行提供、Git 忽略的本機研究輸入，不是網站資源，也不會複製到公開 assets。
+獨立的 [Python reference](prototypes/phase4/README.md) 與 [數值驗證](prototypes/phase4/check_numerics.py) 仍可在本機執行。Python 預設為 1000 × 1000、直接縮放圖片；因此與網站的 256 × 256 置中裁切結果不應逐像素對比。依目前的圖片保留決定，`Monkey.jpg` / `Cat.jpg` 與兩張 SVG 一起作為網站範例保留，同時仍可供本機 Python 使用。
 
 ## 2. Run Locally
 
@@ -245,6 +245,7 @@ fourier-phase-swap-playground/
 ├── js/
 │   ├── app.js                  # Playground UI and events
 │   ├── image.js                # Image decoding and preprocessing
+│   ├── samples.js              # Shared four-image sample catalog
 │   ├── fft.js                  # Radix-2 FFT and separable 2D FFT
 │   ├── fourier.js              # RGB analysis and reconstruction
 │   ├── worker.js               # Playground Web Worker
@@ -287,6 +288,8 @@ fourier-phase-swap-playground/
 │   ├── fixtures/
 │   └── make-fixtures.py
 │
+├── Monkey.jpg                  # Original website sample and Python input
+├── Cat.jpg                     # Original website sample and Python input
 ├── prototypes/phase4/          # Standalone local Python reference and numerical checks
 ├── Graph_Experiment_FT_IFT.py
 ├── package.json
@@ -298,7 +301,7 @@ fourier-phase-swap-playground/
 └── PHASE3A_REPORT.md
 ```
 
-`Graph_Experiment_FT_IFT.py` 保留歷史 Python 計算流程，正式網站不依賴它。研究用的 Monkey / Cat 照片留在本機，不隨 repository 公開；網站使用可公開的兩張 SVG 範例。
+`Graph_Experiment_FT_IFT.py` 保留歷史 Python 計算流程，正式網站不依賴它。網站保留山景、燈塔、Monkey / Cat 四張範例，三個處理照片的實驗頁面都可選擇；也可上傳自己的圖片。
 
 ---
 

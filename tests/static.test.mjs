@@ -15,7 +15,7 @@ test('static hosting: HTTP status/MIME, shipped assets and repository-relative m
     server.stderr.on('data', data => reject(new Error(String(data))));
     server.stdout.on('data', data => { const match = String(data).match(/http:\/\/127\.0\.0\.1:\d+/); if (match) resolve(match[0]); });
   });
-  for (const [path, type] of [['/', 'text/html'], ['/styles.css', 'text/css'], ['/js/worker.js', 'text/javascript'], ['/js/image.js', 'text/javascript'], ['/assets/sample-a.svg', 'image/svg+xml'], ['/assets/sample-b.svg', 'image/svg+xml']]) {
+  for (const [path, type] of [['/', 'text/html'], ['/styles.css', 'text/css'], ['/js/worker.js', 'text/javascript'], ['/js/image.js', 'text/javascript'], ['/assets/sample-a.svg', 'image/svg+xml'], ['/assets/sample-b.svg', 'image/svg+xml'], ['/Monkey.jpg', 'image/jpeg'], ['/Cat.jpg', 'image/jpeg']]) {
     const response = await fetch(origin + path);
     assert.equal(response.status, 200, path);
     assert.ok(response.headers.get('content-type').startsWith(type));

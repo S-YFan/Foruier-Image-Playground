@@ -118,6 +118,14 @@ await test('Coastal lighthouse 範例切換、保留原始比例的裁切與重�
   assert(maxDifference(pixels('original'), image.rgba) === 0);
   metrics.sampleBDimensions = [image.width, image.height];
   compareCurrent();
+  for (const name of ['Monkey.jpg', 'Cat.jpg']) {
+    await select(name);
+    const photograph = await prepareImage(new URL(`../${name}`, import.meta.url).href);
+    assert(get('filename').textContent === name);
+    assert(maxDifference(pixels('original'), photograph.rgba) === 0);
+    compareCurrent();
+  }
+  await select('sample-b.svg');
 });
 await test('alpha = 0 精確重現來源；alpha 只影響 Sharpening', async () => {
   const low = pixels('lpf'), high = pixels('hpf');

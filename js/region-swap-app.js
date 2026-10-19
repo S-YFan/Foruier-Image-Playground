@@ -1,14 +1,12 @@
 import { IMAGE_SIZE } from './fourier.js';
 import { prepareImage } from './image.js';
 import { DEFAULT_PARAMETERS } from './region-swap.js';
+import { SAMPLE_IMAGES, DEFAULT_SAMPLES } from './samples.js';
 
 const $ = id => document.getElementById(id);
 const parameters = { ...DEFAULT_PARAMETERS };
 const ready = { A: false, B: false };
-const samples = {
-  A: { url: new URL('../assets/sample-a.svg', import.meta.url).href, name: 'Mountain lake' },
-  B: { url: new URL('../assets/sample-b.svg', import.meta.url).href, name: 'Coastal lighthouse' },
-};
+const selected = { ...DEFAULT_SAMPLES };
 const pending = new Map();
 let worker, nextId = 0, revision = 0;
 let loading = false, processing = false, dirty = true, failed = false;
@@ -22,6 +20,7 @@ function setStatus(message, error = false) {
 function updateState() {
   for (const slot of ['A', 'B']) {
     $(`upload-${slot}`).disabled = $(`reset-${slot}`).disabled = loading || failed;
+    $(`sample-${slot}`).disabled = loading || failed;
   }
   for (const id of ['mask-type', 'cutoff', 'quadrants', 'orientation', 'stripe-width']) $(id).disabled = failed;
   $('comparison').setAttribute('aria-busy', String(!failed &&
@@ -103,7 +102,7 @@ async function reconstruct() {
   }
 }
 
-async function loadSource(slot, url, filename) {
+async function loadSource(slot, url, filename, selection = 'upload') {
   if (loading || failed) return;
   loading = true;
   revision++;
@@ -120,9 +119,12 @@ async function loadSource(slot, url, filename) {
     $(`filename-${slot}`).textContent = filename;
     $(`filename-${slot}`).title = filename;
     $(`dimensions-${slot}`).textContent = `${prepared.width} × ${prepared.height}`;
+    selected[slot] = selection;
+    $(`sample-${slot}`).value = selection;
     ready[slot] = true;
     clearResult();
   } catch (error) {
+    $(`sample-${slot}`).value = selected[slot];
     sourceError = error.message;
     setStatus(sourceError, true);
   } finally {
@@ -159,7 +161,16 @@ for (const slot of ['A', 'B']) {
     input.value = '';
     void upload(slot, file);
   });
-  $(`reset-${slot}`).addEventListener('click', () => void loadSource(slot, samples[slot].url, samples[slot].name));
+  $(`sample-${slot}`).addEventListener('change', () => {
+    const key = $(`sample-${slot}`).value;
+    if (!Object.hasOwn(SAMPLE_IMAGES, key)) return;
+    const sample = SAMPLE_IMAGES[key];
+    void loadSource(slot, sample.url, sample.name, key);
+  });
+  $(`reset-${slot}`).addEventListener('click', () => {
+    const key = DEFAULT_SAMPLES[slot], sample = SAMPLE_IMAGES[key];
+    void loadSource(slot, sample.url, sample.name, key);
+  });
   card.addEventListener('dragover', event => {
     event.preventDefault();
     if (!loading && !failed) card.classList.add('is-dragging');
@@ -203,7 +214,10 @@ async function start() {
     });
     worker.addEventListener('error', failWorker);
     worker.addEventListener('messageerror', failWorker);
-    for (const slot of ['A', 'B']) await loadSource(slot, samples[slot].url, samples[slot].name);
+    for (const slot of ['A', 'B']) {
+      const key = DEFAULT_SAMPLES[slot], sample = SAMPLE_IMAGES[key];
+      await loadSource(slot, sample.url, sample.name, key);
+    }
   } catch { failWorker(); }
 }
 void start();

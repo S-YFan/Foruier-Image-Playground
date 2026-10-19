@@ -29,6 +29,8 @@
 .mask-key.white { background: #fff; }
 .sample-reset { display: block; color: var(--muted); font: 10px var(--mono); background: none; border: 0; border-bottom: 1px solid #526256; margin: 0 11px 14px; padding: 3px 0; }
 .sample-reset:hover { color: var(--green); }
+.region-grid .sample-picker { margin: 0 10px 12px; }
+.region-grid .sample-picker select { font-size: 10px; }
 .region-grid[aria-busy="true"] .result-card { opacity: .45; }
 .region-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; background: var(--panel); border: 1px solid var(--line); padding: 18px 22px; border-radius: 9px; margin: 22px 0; }
 .region-metrics > div { display: flex; flex-direction: column; gap: 7px; }

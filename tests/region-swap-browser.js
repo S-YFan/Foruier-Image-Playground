@@ -67,6 +67,19 @@ await test('SVG 預設圖片、初始參數與完整重建一致', async () => {
     assert(get(`dimensions-${slot}`).textContent === `${prepared.width} × ${prepared.height}`);
   }
   compareCurrent();
+  for (const slot of ['A', 'B']) {
+    for (const [key, name] of [['sample-a.svg', 'Mountain lake'], ['sample-b.svg', 'Coastal lighthouse'], ['Monkey.jpg', 'Monkey.jpg'], ['Cat.jpg', 'Cat.jpg']]) {
+      change(`sample-${slot}`, key);
+      await waitFor(() => settled() && get(`filename-${slot}`).textContent === name, `sample ${slot}/${key}`);
+      const path = key.endsWith('.svg') ? `../assets/${key}` : `../${key}`;
+      const prepared = await prepareImage(new URL(path, import.meta.url).href);
+      assert(maxDifference(pixels(`image-${slot}`), prepared.rgba) === 0);
+      compareCurrent();
+    }
+    get(`reset-${slot}`).click();
+    const name = slot === 'A' ? 'Mountain lake' : 'Coastal lighthouse';
+    await waitFor(() => settled() && get(`filename-${slot}`).textContent === name, `reset ${slot}`);
+  }
   originals = { create: win.URL.createObjectURL, revoke: win.URL.revokeObjectURL, decode: win.HTMLImageElement.prototype.decode,
     post: win.Worker.prototype.postMessage, put: win.CanvasRenderingContext2D.prototype.putImageData };
   win.URL.createObjectURL = file => { metrics.createdURLs++; return originals.create.call(win.URL, file); };

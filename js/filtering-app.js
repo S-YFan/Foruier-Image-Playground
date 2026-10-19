@@ -1,6 +1,7 @@
 import { IMAGE_SIZE } from './fourier.js';
 import { DEFAULT_SIGMA, DEFAULT_ALPHA } from './filtering.js';
 import { prepareImage } from './image.js';
+import { SAMPLE_IMAGES } from './samples.js';
 
 const $ = id => document.getElementById(id);
 const pending = new Map();
@@ -18,7 +19,6 @@ let lastGroup = 'sharpen';
 let failed = false;
 let sourceError = null;
 let selected = 'sample-a.svg';
-const sampleLabels = { 'sample-a.svg': 'Mountain lake', 'sample-b.svg': 'Coastal lighthouse' };
 
 function setStatus(message, error = false) {
   $('status').textContent = message;
@@ -165,8 +165,9 @@ for (const [id, name, parameter] of [
 
 $('example').addEventListener('change', () => {
   const name = $('example').value;
-  if (!Object.hasOwn(sampleLabels, name)) return;
-  void loadSource(new URL(`../assets/${name}`, import.meta.url).href, sampleLabels[name], name);
+  if (!Object.hasOwn(SAMPLE_IMAGES, name)) return;
+  const sample = SAMPLE_IMAGES[name];
+  void loadSource(sample.url, sample.name, name);
 });
 
 $('upload').addEventListener('change', async () => {
@@ -198,5 +199,6 @@ try {
   });
   worker.addEventListener('error', failWorker);
   worker.addEventListener('messageerror', failWorker);
-  void loadSource(new URL('../assets/sample-a.svg', import.meta.url).href, sampleLabels['sample-a.svg'], 'sample-a.svg');
+  const sample = SAMPLE_IMAGES[selected];
+  void loadSource(sample.url, sample.name, selected);
 } catch { failWorker(); }
