@@ -160,21 +160,61 @@ await test('桌面 1040px：空間三圖同排、頻譜兩欄且保持足夠大�
   assert(get('phase-change').getBoundingClientRect().width >= 320);
   metrics.desktopWidth = win.innerWidth;
 });
-await test('手機 390 / 320px：七圖直排、滑桿可用、所有實驗無水平溢出', async () => {
-  for (const width of [390, 320]) {
+await test('手機 375 / 390 / 320px：重建優先、滑桿緊鄰主結果、所有實驗無水平溢出', async () => {
+  for (const width of [375, 390, 320]) {
     frame.style.width = width + 'px';
     await waitFor(() => win.innerWidth <= width, 'resize');
     await select('shifted-square');
     const rects = [...doc.querySelectorAll('.spatial-triptych .lab-card')].map(item => item.getBoundingClientRect());
-    assert(rects[1].top >= rects[0].bottom && rects[2].top >= rects[1].bottom);
+    assert(rects[0].top >= rects[2].bottom && rects[1].top >= rects[0].bottom, 'reconstruction first, followed by original and shifted');
     assert(get('translation-reconstructed').getBoundingClientRect().width >= 240, 'reconstruction canvas too small at ' + width);
+    assert(get('lab-controls').parentElement === get('translation-controls-host'), 'translation controls beside main reconstruction');
+    const preview = get('translation-reconstructed').getBoundingClientRect(), controls = get('lab-controls').getBoundingClientRect();
+    assert(controls.top >= preview.bottom && controls.top - preview.bottom < 20, 'controls immediately below preview without overlap');
+    assert(controls.bottom - preview.top < 650, 'canvas and both sliders fit together in a phone viewport');
     for (const preset of ['shifted-square', 'square', 'circle', 'stripes']) {
       await select(preset);
       assert(doc.documentElement.scrollWidth <= win.innerWidth + 1, 'overflow ' + width + '/' + preset);
+      if (preset !== 'shifted-square') assert(get('lab-controls').parentElement === get('geometry-controls-host'), 'basic shape controls beside Fourier Magnitude');
     }
     metrics['mobile' + width] = { viewport: win.innerWidth, scroll: doc.documentElement.scrollWidth };
   }
   frame.style.width = '1040px'; await select('shifted-square');
+  await waitFor(() => get('lab-controls').parentElement === get('controls-home'), 'desktop control position restored');
+});
+await test('手機跨模式傳送失敗：新模式滑桿保持可見，保留舊結果並可重試', async () => {
+  frame.style.width = '375px';
+  await waitFor(() => win.innerWidth <= 375, 'mobile failure recovery resize');
+  const post = win.Worker.prototype.postMessage;
+  try {
+    for (const preset of ['circle', 'shifted-square']) {
+      const previousPreset = get('lab-images').dataset.preset;
+      const previousCanvas = previousPreset === 'shifted-square' ? 'translation-reconstructed' : 'lab-magnitude';
+      const before = pixels(previousCanvas).slice();
+      win.Worker.prototype.postMessage = () => { throw new Error('Injected mobile mode-switch failure'); };
+      doc.querySelector('[data-preset="' + preset + '"]').click();
+      await waitFor(() => get('lab-images').getAttribute('aria-busy') === 'false', 'mobile cross-mode failure');
+      assert(get('lab-status').textContent.includes('Injected mobile mode-switch failure'));
+      assert(get('lab-images').dataset.preset === previousPreset, 'failed mode must not relabel old results');
+      identical(pixels(previousCanvas), before);
+      assert(get('lab-controls').parentElement === get('controls-home'), 'controls stay outside the still-hidden target view');
+      assert(get('lab-controls').getBoundingClientRect().height > 0, 'retry controls remain visible');
+      assert(doc.querySelector('[data-controls="' + preset + '"]').getBoundingClientRect().height > 0);
+      win.Worker.prototype.postMessage = post;
+      if (preset === 'circle') {
+        input('circle-radius', 43); await settle('retry circle after failed mode switch');
+        verifyGeometry('circle', { radius: 43 });
+        assert(get('lab-controls').parentElement === get('geometry-controls-host'));
+      } else {
+        await translate(23, -14); verifyTranslation(23, -14);
+        assert(get('lab-controls').parentElement === get('translation-controls-host'));
+      }
+    }
+  } finally {
+    win.Worker.prototype.postMessage = post;
+    frame.style.width = '1040px';
+    await waitFor(() => get('lab-controls').parentElement === get('controls-home'), 'restore desktop after recovery check');
+  }
 });
 await test('Worker 傳送失敗保留七張圖，控制項仍可用並可重試', async () => {
   const before = pixels('translation-shifted').slice(), post = win.Worker.prototype.postMessage;
@@ -191,7 +231,7 @@ await test('Worker 傳送失敗保留七張圖，控制項仍可用並可重試'
 await test('兩頁實際導航與 Playground 預設重建在 repository 子路徑正常運作', async () => {
   const base = new URL('../', import.meta.url).href; metrics.baseURL = base;
   doc.querySelector('.page-nav a[href="./index.html"]').click();
-  await waitFor(() => frame.contentDocument?.getElementById('swap-button')?.disabled === false, 'Playground navigation');
+  await waitFor(() => frame.contentDocument?.getElementById('status')?.textContent.includes('交換完成') && frame.contentDocument?.getElementById('results')?.getAttribute('aria-busy') === 'false', 'Playground navigation');
   doc = frame.contentDocument;
   assert(frame.contentWindow.location.href === new URL('index.html', base).href);
   assert(doc.getElementById('status').textContent.includes('交換完成'));

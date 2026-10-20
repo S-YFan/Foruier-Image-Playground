@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./js/app.js"></script>
 </head>
-<body>
+<body class="phase-swap-page">
   <div class="page-shell">
     <header class="topbar">
       <a class="brand" href="./" aria-label="FOURIER IMAGE LAB 首頁">
@@ -88,17 +88,17 @@
         </div>
         <p class="upload-policy" id="upload-policy">置中裁切為正方形 → 縮放至 256 × 256。保留 RGB，透明區域以白色合成。每張上限 25 MB。</p>
 
-        <div class="swap-control">
-          <span class="connector-line" aria-hidden="true"></span>
-          <button class="swap-button" id="swap-button" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/></svg><span id="swap-label">Swap phases</span></button>
-          <span class="connector-line" aria-hidden="true"></span>
-        </div>
         <div class="status-line"><span id="status-dot" class="status-dot"></span><p id="status" role="status" aria-live="polite">正在啟動實驗… 若持續停留，請使用 npm start 開啟本機預覽。</p></div>
         <noscript><p class="error-note">這個實驗需要啟用 JavaScript。圖片只會在你的瀏覽器內處理。</p></noscript>
 
         <div class="section-heading results-heading">
           <h2><span class="section-number">02</span> 看看交換的結果 <span class="heading-en">RECONSTRUCTIONS</span></h2>
           <span class="technical-label" id="timing">2D IFFT</span>
+        </div>
+        <div class="mobile-source-controls" id="mobile-source-controls" aria-label="更換來源圖片並自動重建" hidden>
+          <p>更換 A 或 B，立即查看下方重建結果。<span lang="en">Live reconstruction</span></p>
+          <div id="mobile-control-A" class="mobile-source-control"></div>
+          <div id="mobile-control-B" class="mobile-source-control"></div>
         </div>
         <div class="image-grid results" id="results" aria-busy="false">
           <article class="image-card result-card">

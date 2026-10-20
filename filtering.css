@@ -31,10 +31,30 @@ input:focus-visible, select:focus-visible { outline: 2px solid var(--green); out
 .filter-caption span { display: block; font: 9px/1.6 var(--mono); color: var(--muted); }
 .filter-results[aria-busy="true"] .result-card { opacity: .45; }
 .status-line { margin-top: 12px; }
-@media (max-width: 640px) { .pass-comparison { grid-template-columns: minmax(0, 1fr); } }
+/* Keep each section's live results next to its own parameters on narrow screens. */
+@media (max-width: 760px) {
+  .filter-results { grid-template-columns: minmax(0, 1fr); }
+  .filter-original { order: 1; }
+  .filter-results .image-surface { max-width: 360px; margin-inline: auto; }
+  .section-controls { padding: 14px 16px; }
+  .section-controls .parameter legend { margin-bottom: 8px; }
+  .section-controls .parameter input { min-height: 28px; margin: 5px 0; }
+  .parameter-grid { gap: 18px; }
+  .parameter-grid .parameter p { font-size: 10px; }
+  .filter-section { scroll-margin-top: 12px; }
+}
+@media (max-width: 760px) and (min-height: 640px) {
+  /* The section bounds release the controls before the following experiment. */
+  .section-controls { position: sticky; top: 8px; z-index: 2; box-shadow: 0 6px 18px #0005; }
+  .filter-results .image-card { scroll-margin-top: 165px; }
+  .sharpen-comparison .image-card { scroll-margin-top: 265px; }
+}
 @media (max-width: 520px) {
-  .parameter-grid { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .parameter-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .filter-controls { padding: 16px; }
+  .section-controls { padding: 12px 14px; }
+  .section-controls .parameter legend { font-size: 10px; margin-bottom: 6px; }
+  .section-controls .parameter p { font-size: 10px; }
   .filter-results { gap: 10px; }
   .filter-results h3 { font-size: 11px; }
   .filter-results .result-index { display: none; }
