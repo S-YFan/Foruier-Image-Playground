@@ -58,7 +58,7 @@ I_{BA}=\mathcal F^{-1}
 - 保留四張網站範例：`assets/sample-a.svg`（Mountain lake／山景）、`assets/sample-b.svg`（Coastal lighthouse／燈塔）、`Monkey.jpg`、`Cat.jpg`。A、B 各自可選任一張，預設為山景與燈塔，開啟後自動產生兩個交換結果。
 - 支援 PNG、JPEG、WebP 上傳與拖放。
 - 更換任一圖片後自動重新計算。
-- 可使用 **Swap phases** 再次執行交換。
+- 開啟、選擇範例或上傳圖片後即自動重建，不需要額外按鈕。
 - 顯示重建運算時間、數值裁切比例與相關計算資訊。
 - 兩個方向的結果皆由真正的 RGB FFT / IFFT 計算產生。
 

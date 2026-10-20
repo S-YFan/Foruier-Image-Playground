@@ -21,8 +21,6 @@ function setBusy(value) {
   busy = value;
   document.body.classList.toggle('is-busy', value);
   inputs.forEach(input => { input.disabled = value || workerFailed; });
-  $('swap-button').disabled = value || workerFailed || !ready.A || !ready.B;
-  $('swap-label').textContent = value ? '計算中…' : 'Swap phases';
   $('results').setAttribute('aria-busy', String(value));
 }
 
@@ -166,13 +164,26 @@ for (const slot of ['A', 'B']) {
 window.addEventListener('dragover', event => event.preventDefault());
 window.addEventListener('drop', event => event.preventDefault());
 
-$('swap-button').addEventListener('click', async () => {
-  if (busy || workerFailed) return;
-  setBusy(true);
-  try { await swap(); }
-  catch (error) { setStatus(error.message, true); }
-  finally { setBusy(false); }
+// Keep the existing source controls beside the first reconstruction on phones.
+// Moving the same nodes preserves their labels, listeners and selected values.
+const mobileLayout = window.matchMedia('(max-width: 760px)');
+const sourceControls = ['A', 'B'].map(slot => {
+  const card = $(`card-${slot}`);
+  return { slot, card, picker: card.querySelector('.sample-picker'), upload: card.querySelector('.upload-label') };
 });
+function arrangeSourceControls() {
+  $('mobile-source-controls').hidden = !mobileLayout.matches;
+  for (const { slot, card, picker, upload } of sourceControls) {
+    if (mobileLayout.matches) {
+      $(`mobile-control-${slot}`).append(picker, upload);
+    } else {
+      card.append(picker);
+      card.querySelector('.card-heading').insertBefore(upload, $(`upload-${slot}`));
+    }
+  }
+}
+mobileLayout.addEventListener('change', arrangeSourceControls);
+arrangeSourceControls();
 
 async function start() {
   setBusy(true);

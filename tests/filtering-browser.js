@@ -261,20 +261,41 @@ await test('一區 postMessage 失敗不阻擋另一區，錯誤保留且可獨�
   } finally { win.Worker.prototype.postMessage = post; }
   input('sigma', 30); await waitFor(settled, 'retry filter'); compareCurrent();
 });
-await test('1040 / 390 / 320px 無溢出，寬螢幕為 Original | LPF | HPF 與 Original | Sharpening', async () => {
-  for (const width of [1040, 390, 320]) {
+await test('1280 / 1040 / 768 / 390 / 375 / 320px 無溢出，手機參數緊鄰完整結果、桌面比較順序不變', async () => {
+  for (const width of [1280, 1040, 768, 390, 375, 320]) {
     frame.style.width = `${width}px`;
+    frame.style.height = width <= 760 ? '812px' : '1050px';
+    win.scrollTo(0, 0);
     await new Promise(resolve => win.requestAnimationFrame(() => win.requestAnimationFrame(resolve)));
     assert(doc.documentElement.scrollWidth <= width, `overflow at ${width}: ${doc.documentElement.scrollWidth}`);
     const boxes = ['original', 'lpf', 'hpf', 'original-sharpen', 'sharpen'].map(id => get(id).getBoundingClientRect());
     assert(boxes.every(box => box.width > 0 && Math.abs(box.width - box.height) < 1));
-    if (width === 1040) {
+    for (const id of ['original', 'lpf', 'hpf', 'original-sharpen', 'sharpen']) {
+      const canvas = get(id).getBoundingClientRect(), surface = get(id).parentElement.getBoundingClientRect();
+      assert(canvas.left >= surface.left - 1 && canvas.right <= surface.right + 1 &&
+        canvas.top >= surface.top - 1 && canvas.bottom <= surface.bottom + 1, `${id} outside surface at ${width}`);
+    }
+    if (width > 760) {
       assert(Math.abs(boxes[0].top - boxes[1].top) < 1 && Math.abs(boxes[1].top - boxes[2].top) < 1);
       assert(boxes[0].left < boxes[1].left && boxes[1].left < boxes[2].left);
       assert(Math.abs(boxes[3].top - boxes[4].top) < 1 && boxes[3].left < boxes[4].left);
+    } else {
+      assert(boxes[1].top < boxes[2].top && boxes[2].top < boxes[0].top && boxes[4].top < boxes[3].top, 'mobile results must precede originals');
+      assert(boxes[1].width >= 240 && boxes[4].width >= 240, `result too small at ${width}`);
+      for (const [controlId, outputId] of [['sigma', 'lpf'], ['sharpen-sigma', 'sharpen']]) {
+        const panel = get(controlId).closest('.section-controls');
+        const panelBox = panel.getBoundingClientRect(), output = get(outputId).getBoundingClientRect();
+        assert(output.top >= panelBox.bottom && output.top - panelBox.bottom < 100, `${outputId} too far from parameters`);
+        assert(panelBox.height < 270, 'sticky controls occupy too much phone height');
+      }
+      const panel = get('sigma').closest('.section-controls');
+      win.scrollTo(0, get('hpf').getBoundingClientRect().top + win.scrollY - panel.getBoundingClientRect().height - 24);
+      await new Promise(resolve => win.requestAnimationFrame(resolve));
+      const controls = panel.getBoundingClientRect(), high = get('hpf').getBoundingClientRect();
+      assert(controls.top >= 0 && controls.bottom <= high.top && high.bottom <= win.innerHeight, 'HPF and its slider must remain visible together');
     }
   }
-  frame.style.width = '1040px';
+  frame.style.width = '1040px'; frame.style.height = '1050px'; win.scrollTo(0, 0);
 });
 await test('相對資源與四頁導航適用 repository 子路徑', () => {
   const base = new URL('../', import.meta.url).href;
@@ -337,7 +358,9 @@ await test('既有 Experiment 實際導航、四頁公開命名與窄螢幕連�
     await waitFor(() => {
       if (frame.contentWindow.location.href !== new URL(page, base).href) return false;
       const current = frame.contentDocument;
-      if (page === 'index.html') return current.getElementById('swap-button')?.disabled === false;
+      if (page === 'index.html') return current.getElementById('results')?.getAttribute('aria-busy') === 'false' &&
+        current.getElementById('result-AB')?.hidden === false && current.getElementById('result-BA')?.hidden === false &&
+        current.getElementById('sample-A')?.disabled === false && current.getElementById('sample-B')?.disabled === false;
       if (page === 'spectrum.html') return current.getElementById('lab-images')?.dataset.preset === 'shifted-square' &&
         current.getElementById('lab-images').getAttribute('aria-busy') === 'false';
       return current.getElementById('pass-results')?.dataset.sigma === '30' &&

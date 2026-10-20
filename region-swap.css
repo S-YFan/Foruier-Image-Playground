@@ -41,5 +41,40 @@ input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px s
 .source-card:focus-within .upload-label { outline: 1px solid var(--green); }
 button:disabled, input:disabled, select:disabled { cursor: default; opacity: .5; }
 @media (max-width: 1000px) { .region-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .region-grid .image-surface { max-width: 300px; margin-inline: auto; } }
-@media (max-width: 640px) { .region-controls { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 17px; } .stripe-options { gap: 14px; } .intro { padding-block: 30px; } .region-grid { gap: 12px; } }
-@media (max-width: 380px) { .region-grid .card-heading { padding: 10px 8px; flex-wrap: wrap; min-height: 66px; align-content: center; } .region-grid .result-index { display: none; } .stripe-options { grid-template-columns: minmax(0, 1fr); } .region-metrics { padding: 16px; gap: 10px; } .region-metrics strong { font-size: 20px; } }
+@media (max-width: 900px) {
+  /* Flatten only the layout wrappers: the original canvases and controls stay intact. */
+  .region-workspace { display: flex; flex-direction: column; }
+  .region-control-section, .region-comparison-section, .region-grid { display: contents; }
+  .region-control-section > .section-heading { order: 0; }
+  .region-controls { order: 1; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px; margin-bottom: 16px; }
+  .region-comparison-section > .section-heading { order: 2; }
+  .reconstruction-card { order: 3; }
+  .mask-card { order: 4; }
+  .region-note { order: 5; }
+  .region-grid .source-card { order: 6; }
+  .region-comparison-section > .upload-policy { order: 7; }
+  .region-comparison-section > .status-line { order: 8; }
+  .region-comparison-section > noscript { order: 9; }
+  .region-grid .image-card { margin-bottom: 16px; }
+  .region-grid .image-surface { max-width: 360px; margin-inline: auto; }
+  .region-grid .card-heading { padding: 14px; min-height: 48px; }
+  .region-grid h3 { font-size: 12px; }
+  .region-controls .mask-type-control { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 12px; }
+  .region-controls select { margin-top: 5px; min-height: 36px; }
+  .region-controls .mask-type-control select { margin-top: 0; }
+  .region-parameter legend { margin-bottom: 6px; }
+  .region-controls input[type="range"] { min-height: 28px; margin: 5px 0; }
+  .region-parameter p { font-size: 10px; margin-top: 4px; }
+  .stripe-options { grid-template-columns: minmax(110px, 1fr) minmax(0, 1.5fr); gap: 14px; }
+  .region-grid .sample-picker label { font-size: 11px; }
+  .region-grid .sample-picker select { min-height: 36px; font-size: 11px; }
+  .region-note { margin-block: 0 18px; }
+  .region-grid .sample-reset { min-height: 30px; }
+}
+@media (max-width: 900px) and (min-height: 640px) {
+  /* Confined to the image workspace, ending before metrics and method notes. */
+  .region-controls { position: sticky; top: 8px; z-index: 2; box-shadow: 0 6px 18px #0005; }
+  .region-workspace .image-card, .region-workspace .section-heading { scroll-margin-top: 240px; }
+}
+@media (max-width: 640px) { .intro { padding-block: 30px; } }
+@media (max-width: 380px) { .region-grid .result-index { display: none; } .region-metrics { padding: 16px; gap: 10px; } .region-metrics strong { font-size: 20px; } }

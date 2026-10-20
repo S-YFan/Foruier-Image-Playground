@@ -6,6 +6,21 @@ const state = { preset: 'shifted-square', square: { side: 64 }, circle: { radius
 let worker, nextId = 0, revision = 0, running = false;
 const pending = new Map();
 const signed = value => value > 0 ? '+' + value : String(value);
+const mobileLayout = window.matchMedia('(max-width: 760px)');
+
+// Move the existing controls beside the main result on phones; keep all inputs,
+// listeners and rendered canvases intact when switching modes or resizing.
+function placeControls() {
+  let host = mobileLayout.matches
+    ? get(state.preset === 'shifted-square' ? 'translation-controls-host' : 'geometry-controls-host')
+    : get('controls-home');
+  // A mode change may fail before its view is rendered. Keep its controls
+  // visible in the original position so the user can adjust and retry.
+  if (host.closest('[hidden]')) host = get('controls-home');
+  const panel = get('lab-controls');
+  if (panel.parentElement !== host) host.append(panel);
+}
+mobileLayout.addEventListener('change', placeControls);
 
 function status(message, error = false) {
   get('lab-status').textContent = message;
@@ -24,6 +39,7 @@ function paint(id, rgba) {
   get(id).getContext('2d').putImageData(new ImageData(rgba, SIZE, SIZE), 0, 0);
 }
 function controls() {
+  placeControls();
   for (const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.preset === state.preset));
   for (const panel of document.querySelectorAll('[data-controls]')) panel.hidden = panel.dataset.controls !== state.preset;
   get('shift-x-value').textContent = signed(state['shifted-square'].dx) + ' px';
@@ -36,6 +52,7 @@ function render(result, renderedRevision) {
   const translation = result.kind === 'translation';
   get('translation-view').hidden = !translation;
   get('geometry-view').hidden = translation;
+  placeControls();
   if (translation) {
     for (const [id, key] of Object.entries({
       'translation-original': 'original', 'translation-shifted': 'shifted', 'translation-reconstructed': 'reconstructed',

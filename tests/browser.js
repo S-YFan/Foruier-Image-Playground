@@ -98,10 +98,24 @@ worker.terminate();
 
 const frame = document.getElementById('app');
 frame.src = new URL('../index.html', import.meta.url).href;
-await waitFor(() => frame.contentDocument?.getElementById('swap-button')?.disabled === false, 'app initialization');
+await waitFor(() => {
+  const app = frame.contentDocument;
+  return app?.getElementById('result-AB')?.hidden === false
+    && app.getElementById('result-BA')?.hidden === false
+    && !app.body.classList.contains('is-busy')
+    && app.getElementById('upload-A')?.disabled === false
+    && app.getElementById('sample-B')?.disabled === false;
+}, 'automatic app initialization');
 const win = frame.contentWindow, doc = frame.contentDocument;
 const get = id => doc.getElementById(id);
 const canvasPixels = id => get(id).getContext('2d').getImageData(0, 0, 256, 256).data;
+const controlsReady = () => ['upload-A', 'upload-B', 'sample-A', 'sample-B'].every(id => !get(id).disabled);
+function assertAutomaticReconstruction() {
+  const a = analyzeRGB(canvasPixels('image-A'), fft), b = analyzeRGB(canvasPixels('image-B'), fft);
+  assert(!get('result-AB').hidden && !get('result-BA').hidden);
+  assert(maxDifference(canvasPixels('result-AB'), reconstructRGB(a, b, fft).rgba) === 0, 'Automatic A magnitude + B phase differs');
+  assert(maxDifference(canvasPixels('result-BA'), reconstructRGB(b, a, fft).rgba) === 0, 'Automatic B magnitude + A phase differs');
+}
 const createURL = win.URL.createObjectURL.bind(win.URL), revokeURL = win.URL.revokeObjectURL.bind(win.URL);
 win.URL.createObjectURL = file => { metrics.blobURLsCreated++; return createURL(file); };
 win.URL.revokeObjectURL = url => { metrics.blobURLsRevoked++; revokeURL(url); };
@@ -118,17 +132,19 @@ async function upload(slot, fileName, eventType = 'change') {
   await waitFor(() => !doc.body.classList.contains('is-busy'), `upload ${fileName}`);
 }
 await test('實際頁面：預設兩張不同圖片自動完成，四張範例皆可切換', async () => {
+  assert(!get('swap-button'), 'Redundant Swap phases button must be removed');
   assert(get('filename-A').textContent === 'Mountain lake' && get('filename-B').textContent === 'Coastal lighthouse');
   assert(maxDifference(canvasPixels('image-A'), canvasPixels('image-B')) > 0);
   assert(!get('result-AB').hidden && !get('result-BA').hidden);
   assert(get('status').textContent.includes('交換完成'));
+  assertAutomaticReconstruction();
   for (const slot of ['A', 'B']) {
     for (const [key, name] of [['sample-a.svg', 'Mountain lake'], ['sample-b.svg', 'Coastal lighthouse'], ['Monkey.jpg', 'Monkey.jpg'], ['Cat.jpg', 'Cat.jpg']]) {
       get(`sample-${slot}`).value = key;
       get(`sample-${slot}`).dispatchEvent(new win.Event('change', { bubbles: true }));
       await waitFor(() => !doc.body.classList.contains('is-busy'), `sample ${slot}/${key}`);
       assert(get(`filename-${slot}`).textContent === name);
-      assert(!get('result-AB').hidden && !get('result-BA').hidden);
+      assertAutomaticReconstruction();
     }
   }
 });
@@ -140,12 +156,17 @@ await test('上傳 PNG／JPEG／WebP：同圖結果與畫面來源逐像素相�
     assert(get('stats-AB').textContent === '裁切 0.0%');
   }
 });
-await test('純黑／純白、拖放與重複 Swap 保留預期亮度', async () => {
+await test('純黑／純白、拖放與重複上傳皆自動重建並保留預期亮度', async () => {
   await upload('A', 'black.png', 'drop'); await upload('B', 'white.png');
   assert(maxDifference(canvasPixels('result-AB'), decoded['black.png'].rgba) === 0);
   assert(maxDifference(canvasPixels('result-BA'), decoded['white.png'].rgba) === 0);
-  for (let i = 0; i < 3; i++) { get('swap-button').click(); await waitFor(() => !get('swap-button').disabled, 'repeat swap'); }
-  assert(maxDifference(canvasPixels('result-BA'), decoded['white.png'].rgba) === 0);
+  for (let i = 0; i < 3; i++) {
+    await upload('A', 'black.png', i % 2 === 0 ? 'drop' : 'change');
+    await upload('B', 'white.png');
+    assert(maxDifference(canvasPixels('result-AB'), decoded['black.png'].rgba) === 0);
+    assert(maxDifference(canvasPixels('result-BA'), decoded['white.png'].rgba) === 0);
+    assert(get('status').textContent.includes('交換完成') && controlsReady());
+  }
 });
 await test('損壞圖片與取消選擇保留現有結果；釋放 Blob URL', async () => {
   const before = canvasPixels('result-BA');
@@ -153,7 +174,7 @@ await test('損壞圖片與取消選擇保留現有結果；釋放 Blob URL', as
   assert(get('status').textContent.includes('無法解碼'));
   assert(maxDifference(canvasPixels('result-BA'), before) === 0);
   const input = get('upload-A'); input.value = ''; input.dispatchEvent(new win.Event('change', { bubbles: true }));
-  assert(!get('swap-button').disabled);
+  assert(controlsReady() && !doc.body.classList.contains('is-busy'));
   assert(metrics.blobURLsCreated === metrics.blobURLsRevoked);
 });
 await test('回歸測試：建立 Blob URL 拋錯後，操作仍恢復可用', async () => {
@@ -162,19 +183,86 @@ await test('回歸測試：建立 Blob URL 拋錯後，操作仍恢復可用', a
   try {
     await upload('A', 'rgb.png');
     assert(get('status').textContent.includes('Injected object URL failure'));
-    assert(!get('swap-button').disabled && !get('upload-A').disabled);
+    assert(controlsReady() && !doc.body.classList.contains('is-busy'));
   } finally { win.URL.createObjectURL = original; }
 });
 await test('Worker postMessage 拋錯後可重試；不破壞既有結果', async () => {
+  const before = Object.fromEntries(['image-A', 'image-B', 'result-AB', 'result-BA'].map(id => [id, canvasPixels(id)]));
   const original = win.Worker.prototype.postMessage;
   win.Worker.prototype.postMessage = () => { throw new Error('Injected postMessage failure'); };
   try {
-    get('swap-button').click();
-    await waitFor(() => !get('swap-button').disabled, 'postMessage recovery');
+    await upload('A', 'rgb.png');
     assert(get('status').textContent.includes('Injected postMessage failure'));
+    assert(controlsReady() && !doc.body.classList.contains('is-busy'));
+    for (const [id, pixels] of Object.entries(before)) {
+      assert(!get(id).hidden && maxDifference(canvasPixels(id), pixels) === 0, `Failed postMessage changed ${id}`);
+    }
   } finally { win.Worker.prototype.postMessage = original; }
-  get('swap-button').click(); await waitFor(() => !get('swap-button').disabled, 'retry');
+  await upload('A', 'rgb.png');
   assert(get('status').textContent.includes('交換完成'));
+  assert(maxDifference(canvasPixels('image-A'), decoded['rgb.png'].rgba) === 0);
+  assertAutomaticReconstruction();
+  assert(metrics.blobURLsCreated === metrics.blobURLsRevoked);
+});
+await test('001 響應式操作：375/390 控制與重建同屏，768/1280 保留桌面比較', async () => {
+  const originalStyle = frame.getAttribute('style');
+  const originalNodes = Object.fromEntries(['A', 'B'].map(slot => [slot, {
+    select: get(`sample-${slot}`),
+    input: get(`upload-${slot}`),
+    label: doc.querySelector(`.upload-label[for="upload-${slot}"]`),
+  }]));
+  const resultNodes = [get('result-AB'), get('result-BA')];
+  try {
+    for (const width of [375, 390, 768, 1280]) {
+      frame.style.cssText = `width:${width}px;height:812px;border:0;max-width:none`;
+      await waitFor(() => win.innerWidth === width, `viewport ${width}`);
+      await new Promise(resolve => win.requestAnimationFrame(() => win.requestAnimationFrame(resolve)));
+      const mobile = width <= 760, panel = get('mobile-source-controls');
+      await waitFor(() => panel.hidden === !mobile, `responsive controls ${width}`);
+      assert(doc.documentElement.scrollWidth <= win.innerWidth + 1, `${width}: unexpected horizontal scrolling`);
+      for (const slot of ['A', 'B']) {
+        const { select, input, label } = originalNodes[slot];
+        assert(get(`sample-${slot}`) === select && get(`upload-${slot}`) === input, `${width}: controls were duplicated`);
+        assert(doc.querySelectorAll(`#sample-${slot}`).length === 1 && doc.querySelectorAll(`#upload-${slot}`).length === 1);
+        assert(doc.querySelectorAll(`.upload-label[for="upload-${slot}"]`).length === 1);
+        assert(label.control === input, `${width}: upload label lost its input`);
+        const home = mobile ? get(`mobile-control-${slot}`) : get(`card-${slot}`);
+        assert(home.contains(select) && home.contains(label), `${width}: source controls are in the wrong location`);
+      }
+      for (const id of ['image-A', 'image-B', 'result-AB', 'result-BA']) {
+        const canvas = get(id), rect = canvas.getBoundingClientRect(), surface = canvas.parentElement.getBoundingClientRect();
+        assert(rect.width > 0 && rect.height > 0, `${width}: ${id} is not visible`);
+        assert(rect.left >= surface.left - 1 && rect.right <= surface.right + 1
+          && rect.top >= surface.top - 1 && rect.bottom <= surface.bottom + 1, `${width}: ${id} exceeds its container`);
+      }
+      assert(get('result-AB') === resultNodes[0] && get('result-BA') === resultNodes[1], `${width}: result canvases were replaced`);
+      const ab = get('result-AB').getBoundingClientRect(), ba = get('result-BA').getBoundingClientRect();
+      if (mobile) {
+        assert(ba.top > ab.bottom, `${width}: results need a full-width single column`);
+        panel.scrollIntoView({ block: 'start' });
+        const controlsRect = panel.getBoundingClientRect(), resultRect = get('result-AB').getBoundingClientRect();
+        assert(controlsRect.top >= -1 && controlsRect.bottom <= win.innerHeight
+          && resultRect.top >= 0 && resultRect.bottom <= win.innerHeight, `${width}: source controls and reconstruction cannot be viewed together`);
+        assert(resultRect.width >= 240, `${width}: reconstruction is too small to inspect`);
+        if (width === 375) {
+          get('sample-B').value = 'sample-a.svg';
+          get('sample-B').dispatchEvent(new win.Event('change', { bubbles: true }));
+          await waitFor(() => !doc.body.classList.contains('is-busy'), 'mobile sample auto reconstruction');
+          assert(get('filename-B').textContent === 'Mountain lake' && controlsReady());
+        } else {
+          await upload('A', 'rgb.png');
+          assert(get('filename-A').textContent === 'rgb.png' && controlsReady());
+        }
+        assertAutomaticReconstruction();
+      } else {
+        assert(Math.abs(ab.top - ba.top) < 1 && ba.left >= ab.right, `${width}: desktop results should remain side by side`);
+      }
+    }
+  } finally {
+    if (originalStyle === null) frame.removeAttribute('style');
+    else frame.setAttribute('style', originalStyle);
+    win.scrollTo(0, 0);
+  }
 });
 win.URL.createObjectURL = createURL; win.URL.revokeObjectURL = revokeURL;
 

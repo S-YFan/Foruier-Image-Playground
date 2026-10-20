@@ -6,6 +6,10 @@
 .lab-intro h1 > span { color: var(--green); }
 .lab-intro > p:last-child { color: var(--muted); font-size: 12px; margin: 12px 0 0; }
 .lab-intro .eyebrow { margin-bottom: 10px; }
+.selection-guide { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0 0 14px; color: var(--muted); font-size: 11px; line-height: 1.8; }
+.selection-guide > span { min-width: 0; }
+.selection-guide strong { display: block; color: #c7d4ca; font-size: 11px; font-weight: 500; }
+.mobile-controls-host:empty { display: none; }
 .preset-list { display: grid; grid-template-columns: 1fr 1fr 1.2fr 1.65fr; gap: 10px; }
 .preset-list button { display: flex; align-items: center; justify-content: center; gap: 10px; color: #c7d4ca; background: var(--panel); border: 1px solid #435449; border-radius: 7px; padding: 13px 10px; font-size: 12px; min-height: 56px; }
 .preset-list button > span:first-child { color: #a0b6a5; font-size: 17px; }
@@ -83,6 +87,16 @@ input[type="range"] { width: 100%; margin: 0; accent-color: var(--green); cursor
   .parameter-panel { grid-template-columns: 1fr; gap: 22px; padding: 20px; }
   .spatial-triptych, .spectral-pair, .geometry-grid, .geometry-spectra { grid-template-columns: minmax(0, 1fr); }
   .spatial-triptych { gap: 17px; }
+  .spatial-triptych .reconstruction-card { order: -1; }
+  .geometry-grid { display: flex; flex-direction: column; }
+  .geometry-grid .fourier-column { order: -1; }
+  .mobile-controls-host .parameter-panel { margin: 12px; padding: 14px 12px; gap: 10px 16px; }
+  .mobile-controls-host [data-controls="shifted-square"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mobile-controls-host [data-controls="shifted-square"] label { flex-wrap: wrap; gap: 4px; }
+  .mobile-controls-host [data-controls="shifted-square"] output { width: 100%; text-align: right; }
+  .mobile-controls-host .range-control label { margin-bottom: 5px; }
+  .mobile-controls-host .range-ticks { margin-top: 2px; }
+  .mobile-controls-host .control-note { font-size: 10px; line-height: 1.6; }
   .lab-card > canvas { width: calc(100% - 24px); max-width: 384px; margin: 0 auto; }
   .magnitude-result { align-items: flex-start; flex-direction: column; gap: 15px; }
   .metric { text-align: left; }

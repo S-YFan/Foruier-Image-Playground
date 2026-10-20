@@ -139,9 +139,11 @@ await test('連續參數只顯示最新狀態；運算中還原圖片與再調�
   get('reset-B').click(); await waitFor(() => settled() && get('filename-B').textContent === 'Coastal lighthouse', 'reset B');
   compareCurrent(); assert(metrics.createdURLs === metrics.revokedURLs);
 });
-await test('1040 / 390 / 320px 無橫向溢出，三種控制與四頁導航可操作', async () => {
-  for (const width of [1040, 390, 320]) {
+await test('1280 / 1040 / 900 / 768 / 390 / 375 / 320px 無溢出，平板及手機重建優先且與遮罩控制同步可見', async () => {
+  for (const width of [1280, 1040, 900, 768, 390, 375, 320]) {
     frame.style.width = `${width}px`;
+    frame.style.height = width <= 900 ? '812px' : '1200px';
+    win.scrollTo(0, 0);
     await new Promise(resolve => win.requestAnimationFrame(() => win.requestAnimationFrame(resolve)));
     assert(doc.documentElement.scrollWidth <= width, `Overflow ${width}: ${doc.documentElement.scrollWidth}`);
     for (const [type, id] of [['disk', 'cutoff'], ['quadrants', 'quadrants'], ['stripes', 'stripe-width']]) {
@@ -149,6 +151,24 @@ await test('1040 / 390 / 320px 無橫向溢出，三種控制與四頁導航可�
       for (const control of [get('mask-type'), get(id)]) {
         const box = control.getBoundingClientRect(); assert(box.width > 0 && box.left >= 0 && box.right <= width && !control.disabled, `${id} outside ${width}`);
       }
+      if (width <= 900) {
+        const panel = get('mask-type').closest('.region-controls'), controls = panel.getBoundingClientRect();
+        const result = get('reconstruction').getBoundingClientRect();
+        assert(controls.height < 250, `controls too tall for ${type} at ${width}`);
+        assert(result.top > controls.bottom && result.top - controls.bottom < 110, `result too far from ${type} controls`);
+        assert(result.width >= 240 && result.width <= 360 && result.top < get('phase-mask').getBoundingClientRect().top && result.top < get('image-A').getBoundingClientRect().top, 'full-size reconstruction must appear first without exceeding 360px');
+        win.scrollTo(0, win.scrollY + result.top - controls.height - 24);
+        await new Promise(resolve => win.requestAnimationFrame(resolve));
+        const pinned = panel.getBoundingClientRect(), visible = get('reconstruction').getBoundingClientRect();
+        assert(pinned.top >= 0 && pinned.bottom <= visible.top && visible.bottom <= win.innerHeight, `${type} controls and result must be visible together`);
+        win.scrollTo(0, 0);
+        await new Promise(resolve => win.requestAnimationFrame(resolve));
+      }
+    }
+    for (const id of ['image-A', 'image-B', 'phase-mask', 'reconstruction']) {
+      const canvas = get(id).getBoundingClientRect(), surface = get(id).parentElement.getBoundingClientRect();
+      assert(canvas.left >= surface.left - 1 && canvas.right <= surface.right + 1 &&
+        canvas.top >= surface.top - 1 && canvas.bottom <= surface.bottom + 1, `${id} outside surface at ${width}`);
     }
     for (const link of doc.querySelectorAll('.page-nav a')) {
       const box = link.getBoundingClientRect(); assert(box.width > 0 && box.left >= 0 && box.right <= width, `Navigation outside ${width}`);
@@ -157,7 +177,7 @@ await test('1040 / 390 / 320px 無橫向溢出，三種控制與四頁導航可�
   assert(doc.querySelectorAll('.page-nav a').length === 4);
   const base = new URL('../', import.meta.url).href;
   assert(win.performance.getEntriesByType('resource').every(entry => entry.name.startsWith(base) || entry.name.startsWith('blob:')));
-  frame.style.width = '1040px'; compareCurrent();
+  frame.style.width = '1040px'; frame.style.height = '1200px'; win.scrollTo(0, 0); compareCurrent();
 });
 if (originals) {
   win.URL.createObjectURL = originals.create; win.URL.revokeObjectURL = originals.revoke;

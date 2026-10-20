@@ -4,7 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101513">
   <meta name="application-name" content="FOURIER IMAGE LAB">
-  <meta name="description" content="FOURIER IMAGE LAB：移動方形，觀察振幅不變、相位改變，以及真正 IFFT 重建如何跟著移動。">
+  <meta name="description" content="FOURIER IMAGE LAB：觀察方形、圓形與條紋的 Fourier 頻譜，或進入 Translation Experiment 調整 Δx、Δy，觀察相位與 IFFT 重建。">
   <title>Experiment 002 — Spectrum Lab — FOURIER IMAGE LAB</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css"><link rel="stylesheet" href="./spectrum.css">
@@ -26,17 +26,19 @@
     <main>
       <section class="lab-intro" aria-labelledby="page-title">
         <p class="eyebrow"><span>EXPERIMENT 002</span><span class="eyebrow-line"></span> SPECTRUM &amp; GEOMETRY</p>
-        <h1 id="page-title">Move the shape. <span>Follow the phase.</span></h1>
-        <p>從位置、尺寸與週期，觀察 Fourier 振幅與相位。</p>
+        <h1 id="page-title">Explore the spectrum. <span>Follow the phase.</span></h1>
+        <p>觀察基本形狀的頻譜，或透過平移實驗探索位置與相位的關係。</p>
       </section>
       <section aria-labelledby="selection-heading">
         <div class="section-heading"><h2 id="selection-heading"><span class="section-number">01</span> Experiment Selection</h2><span class="technical-label">256 × 256 · GRAYSCALE</span></div>
-        <div class="preset-list" role="group" aria-label="幾何圖形 Preset">
-          <button type="button" data-preset="square" aria-pressed="false"><span aria-hidden="true">■</span> Square</button>
-          <button type="button" data-preset="circle" aria-pressed="false"><span aria-hidden="true">●</span> Circle</button>
-          <button type="button" data-preset="stripes" aria-pressed="false"><span aria-hidden="true">▥</span> Vertical Stripes</button>
-          <button type="button" data-preset="shifted-square" aria-pressed="true"><span aria-hidden="true">↔</span><span>Translation Experiment<small>Shifted Square</small></span></button>
+        <p class="selection-guide" id="selection-guide"><span><strong>Basic Shapes · 基本頻譜觀察</strong>Square / Circle / Stripes：調整尺寸或週期。</span><span><strong>Translation · 互動平移</strong>選擇 Translation Experiment，操作 Δx、Δy。</span></p>
+        <div class="preset-list" role="group" aria-label="頻譜觀察與平移實驗" aria-describedby="selection-guide">
+          <button type="button" data-preset="square" aria-pressed="false"><span aria-hidden="true">■</span><span>Square<small>基本形狀 · 頻譜觀察</small></span></button>
+          <button type="button" data-preset="circle" aria-pressed="false"><span aria-hidden="true">●</span><span>Circle<small>基本形狀 · 頻譜觀察</small></span></button>
+          <button type="button" data-preset="stripes" aria-pressed="false"><span aria-hidden="true">▥</span><span>Vertical Stripes<small>基本形狀 · 頻譜觀察</small></span></button>
+          <button type="button" data-preset="shifted-square" aria-pressed="true"><span aria-hidden="true">↔</span><span>Translation Experiment<small>互動平移 · Δx / Δy</small></span></button>
         </div>
+        <div id="controls-home"><div id="lab-controls">
         <div class="parameter-panel" data-controls="shifted-square">
           <div class="range-control"><label for="shift-x">Horizontal Shift <span>Δx</span><output id="shift-x-value" for="shift-x">0 px</output></label><input id="shift-x" type="range" min="-96" max="96" step="1" value="0"><div class="range-ticks"><span>−96</span><span>0</span><span>+96 px</span></div></div>
           <div class="range-control"><label for="shift-y">Vertical Shift <span>Δy</span><output id="shift-y-value" for="shift-y">0 px</output></label><input id="shift-y" type="range" min="-96" max="96" step="1" value="0"><div class="range-ticks"><span>−96</span><span>0</span><span>+96 px</span></div></div>
@@ -45,6 +47,7 @@
         <div class="parameter-panel single-control" data-controls="square" hidden><div class="range-control"><label for="side-length">Side length<output id="side-value" for="side-length">64 px</output></label><input id="side-length" type="range" min="16" max="160" step="2" value="64"><div class="range-ticks"><span>16</span><span>160 px</span></div></div></div>
         <div class="parameter-panel single-control" data-controls="circle" hidden><div class="range-control"><label for="circle-radius">Radius<output id="radius-value" for="circle-radius">40 px</output></label><input id="circle-radius" type="range" min="8" max="96" step="1" value="40"><div class="range-ticks"><span>8</span><span>96 px</span></div></div></div>
         <div class="parameter-panel single-control" data-controls="stripes" hidden><div class="range-control"><label for="stripe-period">Spatial period<output id="period-value" for="stripe-period">32 px · 8 cycles</output></label><input id="stripe-period" type="range" min="0" max="4" step="1" value="2" aria-describedby="period-help"><div class="range-ticks"><span>8</span><span>16</span><span>32</span><span>64</span><span>128 px</span></div><p id="period-help" class="control-note">只使用能整除 256 的週期，方便觀察離散頻率峰值。</p></div></div>
+        </div></div>
       </section>
       <div class="status-line"><span class="status-dot"></span><p id="lab-status" role="status" aria-live="polite">正在啟動 Spectrum Lab… 請透過 HTTP / HTTPS 開啟。</p></div>
       <noscript><p class="error-note">此實驗需要 JavaScript，請透過本機 HTTP 預覽開啟。</p></noscript>
@@ -56,7 +59,7 @@
             <div class="spatial-triptych">
               <article class="lab-card"><div class="lab-card-heading"><h3>Original Square</h3><span>REFERENCE</span></div><canvas id="translation-original" width="256" height="256" role="img" aria-label="固定在中央的 Original Square"></canvas><p class="card-caption">固定基準 · 64 × 64 px<span>(0, 0) px</span></p></article>
               <article class="lab-card"><div class="lab-card-heading"><h3>Shifted Square</h3><span>TRANSLATED PIXELS</span></div><canvas id="translation-shifted" width="256" height="256" role="img" aria-label="依滑桿平移原始像素的 Shifted Square"></canvas><p class="card-caption">同一份像素，只改位置<span id="rendered-shift">(0, 0) px</span></p></article>
-              <article class="lab-card reconstruction-card"><div class="lab-card-heading"><h3>Reconstructed Square</h3><span>TRUE IFFT</span></div><canvas id="translation-reconstructed" width="256" height="256" role="img" aria-label="Original Magnitude 加 Shifted Phase 經 IFFT 得到的重建方形"></canvas><p class="reconstruction-recipe">Original Magnitude + Shifted Phase</p><p class="card-caption">量化後最大像素差<span id="pixel-error">—</span></p></article>
+              <article class="lab-card reconstruction-card"><div class="lab-card-heading"><h3>Reconstructed Square</h3><span>TRUE IFFT</span></div><canvas id="translation-reconstructed" width="256" height="256" role="img" aria-label="Original Magnitude 加 Shifted Phase 經 IFFT 得到的重建方形"></canvas><div id="translation-controls-host" class="mobile-controls-host"></div><p class="reconstruction-recipe">Original Magnitude + Shifted Phase</p><p class="card-caption">量化後最大像素差<span id="pixel-error">—</span></p></article>
             </div>
             <p class="reconstruction-check">重建與 Shifted Square 的最大浮點像素誤差：<output id="reconstruction-error">—</output></p>
           </section>
@@ -81,7 +84,7 @@
           <div class="geometry-grid">
             <section class="spatial-column" aria-labelledby="geometry-spatial-heading"><h2 id="geometry-spatial-heading"><span class="section-number">02</span> Spatial Domain</h2><article class="lab-card"><div class="lab-card-heading"><h3>Spatial Image</h3><span>x, y</span></div><canvas id="lab-spatial" width="256" height="256" role="img" aria-label="目前參數產生的空間域圖片"></canvas><p class="card-caption">白底二值圖形<span id="dc-value">—</span></p></article></section>
             <section class="fourier-column" aria-labelledby="geometry-fourier-heading"><h2 id="geometry-fourier-heading"><span class="section-number">03</span> Fourier Domain</h2><div class="geometry-spectra">
-              <article class="lab-card"><div class="lab-card-heading"><h3>Fourier Magnitude</h3><span>|F|</span></div><canvas id="lab-magnitude" width="256" height="256" role="img" aria-label="目前參數的 log 振幅頻譜，DC 置中"></canvas><p class="card-caption">log(1 + |F|)<span>DC 置中</span></p></article>
+              <article class="lab-card"><div class="lab-card-heading"><h3>Fourier Magnitude</h3><span>|F|</span></div><canvas id="lab-magnitude" width="256" height="256" role="img" aria-label="目前參數的 log 振幅頻譜，DC 置中"></canvas><div id="geometry-controls-host" class="mobile-controls-host"></div><p class="card-caption">log(1 + |F|)<span>DC 置中</span></p></article>
               <article class="lab-card"><div class="lab-card-heading"><h3>Fourier Phase</h3><span>arg(F)</span></div><canvas id="lab-phase" width="256" height="256" role="img" aria-label="目前參數的循環色彩相位頻譜，零或近零振幅為中性色"></canvas><p class="card-caption">atan2(Im F, Re F)<span>DC 置中</span></p></article>
             </div></section>
           </div>
