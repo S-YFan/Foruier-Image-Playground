@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101513">
+  <meta name="application-name" content="FOURIER IMAGE LAB">
+  <meta name="description" content="The motivation, textbook inspiration, Fourier conventions, and experiment references behind FOURIER IMAGE LAB.">
+  <title>Documentation — FOURIER IMAGE LAB</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./site.css">
+  <link rel="stylesheet" href="./documentation.css">
+  <link rel="stylesheet" href="./assets/katex/katex.min.css">
+  <script type="module" src="./js/site.js"></script>
+  <script src="./assets/katex/katex.min.js" defer></script>
+  <script src="./js/math.js" defer></script>
+</head>
+<body class="documentation-page" data-page="documentation">
+  <div class="page-shell">
+    <div data-site-header></div>
+    <main id="main-content">
+      <header class="docs-intro">
+        <p class="eyebrow"><span>DOCUMENTATION</span><span class="eyebrow-line"></span> A SCIENTIFIC COMPANION</p>
+        <h1>A guide to <span>the lab.</span></h1>
+        <p>Background, essential mathematics, and questions to explore.</p>
+      </header>
+      <div class="docs-layout">
+        <nav class="docs-toc" aria-label="On this page">
+          <p>ON THIS PAGE</p>
+          <ol>
+            <li><a href="#introduction"><span>01</span> Introduction</a></li>
+            <li><a href="#mathematics"><span>02</span> Mathematical Background</a></li>
+            <li><a href="#experiments"><span>03</span> Experiment References</a></li>
+          </ol>
+          <a class="docs-start" href="./phase-swap.html">Open Experiment 001 <span aria-hidden="true">↗</span></a>
+        </nav>
+        <div class="docs-content">
+          <section class="docs-section" id="introduction" aria-labelledby="introduction-title">
+            <h2 id="introduction-title"><span class="docs-number">01</span> Introduction</h2>
+            <h3>Background &amp; motivation</h3>
+            <p>FOURIER IMAGE LAB was inspired by Chapter 6 of <cite>Signals and Systems</cite>, second edition, by Alan V. Oppenheim, Alan S. Willsky, and S. Hamid Nawab. Its discussion of magnitude and phase prompted a question: how can frequency-domain ideas become something we can observe and manipulate in an image?</p>
+            <p>The lab extends that motivation into interactive visual experiments. Change an input, observe a reconstruction, and connect the result to the mathematics. It is a tool for exploration alongside the original textbook; the four experiments are developed for this site rather than presented as reproductions of the chapter.</p>
+            <p class="docs-citation">Textbook reference: Oppenheim, Willsky, and Nawab. <cite>Signals and Systems</cite>, 2nd edition, Prentice Hall, © 1997. Chapter 6: <cite>Time- and Frequency Characterization of Signals and Systems</cite>. <a href="https://www.pearson.com/en-us/subject-catalog/p/Oppenheim-Signals-and-Systems-2nd-Edition/P200000003155?view=educator" target="_blank" rel="noopener noreferrer">Publisher and chapter contents ↗</a></p>
+          </section>
+          <section class="docs-section" id="mathematics" aria-labelledby="mathematics-title">
+            <h2 id="mathematics-title"><span class="docs-number">02</span> Mathematical Background</h2>
+            <p>The lab uses a square grid with <span data-math>N=256</span>. Here <span data-math>x,y</span> are pixel coordinates and <span data-math>u,v</span> are discrete frequency indices, all initially indexed from 0 to <span data-math>N-1</span>. The horizontal coordinate is first; image rows increase downward.</p>
+
+            <h3>2D Discrete Fourier Transform</h3>
+            <p>For one real-valued image channel <span data-math>I(x,y)</span>, the forward transform is</p>
+            <div class="docs-equation" data-math data-display>\begin{aligned}F(u,v)&amp;=\sum_{y=0}^{N-1}\sum_{x=0}^{N-1} I(x,y)\\&amp;\qquad\cdot e^{-i2\pi(ux+vy)/N}.\end{aligned}</div>
+            <p>The FFT is an efficient way to compute this DFT. The forward transform is unnormalized. RGB experiments apply it independently to each color channel; Spectrum / Translation uses a grayscale channel.</p>
+
+            <h3>Magnitude and phase</h3>
+            <div class="docs-equation" data-math data-display>F(u,v)=|F(u,v)|e^{i\phi(u,v)}</div>
+            <p>Magnitude <span data-math>|F|</span> is the amplitude of a frequency component. Phase <span data-math>\phi=\operatorname{atan2}(\operatorname{Im}F,\operatorname{Re}F)</span> describes its phase relative to the coordinate origin. Their combination determines the reconstruction; phase alone does not contain all image information.</p>
+            <p>At zero magnitude, phase is undefined. The code stores zero as a numerical convention. Spectrum / Translation masks zero or near-zero magnitudes in neutral gray when displaying phase; that mask does not remove coefficients from the reconstruction.</p>
+
+            <h3>Inverse Fourier Transform</h3>
+            <p>For an edited spectrum <span data-math>G(u,v)</span>, the inverse is</p>
+            <div class="docs-equation" data-math data-display>\begin{aligned}I'(x,y)&amp;=\frac{1}{N^2}\sum_{v=0}^{N-1}\sum_{u=0}^{N-1}G(u,v)\\&amp;\qquad\cdot e^{i2\pi(ux+vy)/N}.\end{aligned}</div>
+            <p>The IFFT divides by <span data-math>N</span> in each dimension, giving the factor <span data-math>1/N^2</span>. The transform assumes periodic boundaries.</p>
+
+            <h3>Frequency coordinates</h3>
+            <p>Native FFT arrays place DC (zero frequency) at index [0, 0]. For an axis index <span data-math>u</span>, the signed bin is <span data-math>k_u=u</span> below <span data-math>N/2</span>, otherwise <span data-math>k_u=u-N</span>. At 256 samples, the signed range is −128…127 bins, and <span data-math>k_u/N</span> is frequency in cycles/pixel. The axial Nyquist frequency has magnitude 0.5 cycles/pixel.</p>
+            <p><code>fftshift</code> centers display copies without moving the coefficients used in calculations. Frequency units and display conventions specific to a filter or mask are explained on its experiment page.</p>
+
+            <h3>Real images and Hermitian symmetry</h3>
+            <div class="docs-equation" data-math data-display>F((-u)\bmod N,(-v)\bmod N)=\overline{F(u,v)}</div>
+            <p>Real-valued inputs have conjugate frequency pairs. The shared RGB analysis projects tiny floating-point errors onto this symmetry before extracting magnitude and phase. Reconstruction keeps the self-conjugate DC / Nyquist points real. Experiment 004 uses symmetric binary masks so replacing phase preserves this relation.</p>
+
+          </section>
+          <section class="docs-section" id="experiments" aria-labelledby="experiments-title">
+            <h2 id="experiments-title"><span class="docs-number">03</span> Experiment References</h2>
+            <p class="docs-quick-start">Choose an experiment, select a sample or upload an image where supported, then change one variable and compare the result. Updates run automatically. Spectrum / Translation uses generated shapes; the other experiments accept PNG, JPEG, or WebP images up to 25 MiB.</p>
+            <div class="docs-experiments">
+              <article><a href="./phase-swap.html"><span>001</span><h3>Magnitude / Phase Swap</h3><span aria-hidden="true">↗</span></a><p>How does a reconstruction change when magnitude comes from one image and phase from another?</p></article>
+              <article><a href="./spectrum.html"><span>002</span><h3>Spectrum / Translation</h3><span aria-hidden="true">↗</span></a><p>How do shape, size, and position appear in a spectrum? What changes when the same pixels move?</p></article>
+              <article><a href="./filtering.html"><span>003</span><h3>Gaussian Filtering</h3><span aria-hidden="true">↗</span></a><p>What do smoothing, high-pass filtering, and sharpening reveal about spatial detail?</p></article>
+              <article><a href="./region-swap.html"><span>004</span><h3>Partial Phase Region Swap</h3><span aria-hidden="true">↗</span></a><p>What happens when phase is replaced only within selected frequency regions?</p></article>
+            </div>
+            <p class="docs-reference-note">Controls, parameter units, preprocessing, and display details are documented on each experiment page.</p>
+            <a class="docs-back" href="#main-content">Back to top <span aria-hidden="true">↑</span></a>
+          </section>
+        </div>
+      </div>
+    </main>
+    <div data-site-footer></div>
+  </div>
+</body>
+</html>

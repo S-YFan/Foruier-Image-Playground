@@ -229,9 +229,9 @@ await test('格式／大小／損壞圖片與取消選擇保留來源，Blob URL
   await upload(new win.File(['text'], 'bad.txt', { type: 'text/plain' }));
   assert(get('status').textContent.includes('PNG'));
   await upload(new win.File([new Uint8Array(25 * 1024 * 1024 + 1)], 'large.png', { type: 'image/png' }));
-  assert(get('status').textContent.includes('25 MB'));
+  assert(get('status').textContent.includes('25 MiB'));
   await upload(await fixture('broken.png'));
-  assert(get('status').textContent.includes('無法解碼'));
+  assert(get('status').textContent.includes('Unable to decode'));
   await upload(null);
   assert(maxDifference(original, pixels('original')) === 0 && maxDifference(result, pixels('sharpen')) === 0);
   assert(metrics.createdURLs === metrics.revokedURLs);
@@ -240,7 +240,7 @@ await test('格式／大小／損壞圖片與取消選擇保留來源，Blob URL
   input('sigma', 55); input('alpha', 0.8);
   await recovery;
   assert(get('pass-results').dataset.sigma === '55' && get('sharpen-results').dataset.alpha === '0.8');
-  assert(get('status').textContent.includes('無法解碼'));
+  assert(get('status').textContent.includes('Unable to decode'));
   assert(metrics.createdURLs === metrics.revokedURLs);
   compareCurrent();
   input('alpha', 0.7); await waitFor(settled, 'recover upload'); compareCurrent();
@@ -303,8 +303,8 @@ await test('相對資源與四頁導航適用 repository 子路徑', () => {
   assert(resources.some(url => url.endsWith('/js/filtering-worker.js')));
   assert(resources.some(url => url.endsWith('/assets/sample-b.svg')));
   assert(resources.every(url => url.startsWith(base)));
-  for (const page of ['index.html', 'spectrum.html', 'filtering.html', 'region-swap.html']) assert(doc.querySelector(`.page-nav a[href="./${page}"]`));
-  assert(doc.querySelector('.page-nav [aria-current="page"]').textContent.trim() === '003 Gaussian Filtering');
+  for (const page of ['phase-swap.html', 'spectrum.html', 'filtering.html', 'region-swap.html']) assert(doc.querySelector(`.experiment-menu a[href$="/${page}"]`));
+  assert(doc.querySelector('.experiment-menu [aria-current="page"]').textContent.replace('↗', '').trim() === '003 Gaussian Filtering');
 });
 
 win.URL.createObjectURL = createURL; win.URL.revokeObjectURL = revokeURL;
@@ -314,10 +314,10 @@ win.CanvasRenderingContext2D.prototype.putImageData = putImageData;
 await test('既有 Experiment 實際導航、四頁公開命名與窄螢幕連結', async () => {
   const base = new URL('../', import.meta.url);
   const experiments = [
-    ['index.html', '001', 'RGB Fourier Phase Swap'],
-    ['spectrum.html', '002', 'Spectrum Lab'],
-    ['filtering.html', '003', 'Gaussian Filtering'],
-    ['region-swap.html', '004', 'Partial Phase Region Swap'],
+    ['phase-swap.html', '001', 'RGB Fourier Phase Swap', 'Magnitude / Phase Swap'],
+    ['spectrum.html', '002', 'Spectrum Lab', 'Spectrum / Translation'],
+    ['filtering.html', '003', 'Gaussian Filtering', 'Gaussian Filtering'],
+    ['region-swap.html', '004', 'Partial Phase Region Swap', 'Partial Phase Region Swap'],
   ];
   const inspected = new Set();
   metrics.navigation = [];
@@ -331,14 +331,15 @@ await test('既有 Experiment 實際導航、四頁公開命名與窄螢幕連�
     assert(!/FOURIER LAB|Fourier Lab|IMAGIE/.test(current.body.textContent));
     assert(current.querySelector('.eyebrow > span').textContent === `EXPERIMENT ${number}`);
     assert(!/EXPERIMENT 003A|PHASE 3A|Phase 3A/.test(current.body.textContent));
-    const links = Array.from(current.querySelectorAll('.page-nav a'));
+    const links = Array.from(current.querySelectorAll('.experiment-menu a'));
     assert(links.length === 4);
-    for (const [i, [file, id, title]] of experiments.entries()) {
+    for (const [i, [file, id, , label]] of experiments.entries()) {
       assert(links[i].href === new URL(file, base).href);
-      assert(links[i].textContent.trim() === `${id} ${title}`);
+      assert(links[i].textContent.replace('↗', '').trim() === `${id} ${label}`);
     }
-    assert(current.querySelector('.page-nav [aria-current="page"]').href === new URL(page, base).href);
+    assert(current.querySelector('.experiment-menu [aria-current="page"]').href === new URL(page, base).href);
     if (inspected.has(page)) return;
+    current.querySelector('.experiments-toggle').click();
     for (const width of [1040, 390, 320]) {
       frame.style.width = `${width}px`;
       await new Promise(resolve => frame.contentWindow.requestAnimationFrame(() => frame.contentWindow.requestAnimationFrame(resolve)));
@@ -349,16 +350,18 @@ await test('既有 Experiment 實際導航、四頁公開命名與窄螢幕連�
       }
     }
     frame.style.width = '1040px';
+    current.querySelector('.experiments-toggle').click();
     inspected.add(page);
   }
   let from = 'filtering.html';
   await inspect(from);
-  for (const page of ['index.html', 'spectrum.html', 'filtering.html', 'spectrum.html', 'index.html', 'filtering.html']) {
-    frame.contentDocument.querySelector(`.page-nav a[href="./${page}"]`).click();
+  for (const page of ['phase-swap.html', 'spectrum.html', 'filtering.html', 'spectrum.html', 'phase-swap.html', 'filtering.html']) {
+    frame.contentDocument.querySelector('.experiments-toggle').click();
+    frame.contentDocument.querySelector(`.experiment-menu a[href$="/${page}"]`).click();
     await waitFor(() => {
       if (frame.contentWindow.location.href !== new URL(page, base).href) return false;
       const current = frame.contentDocument;
-      if (page === 'index.html') return current.getElementById('results')?.getAttribute('aria-busy') === 'false' &&
+      if (page === 'phase-swap.html') return current.getElementById('results')?.getAttribute('aria-busy') === 'false' &&
         current.getElementById('result-AB')?.hidden === false && current.getElementById('result-BA')?.hidden === false &&
         current.getElementById('sample-A')?.disabled === false && current.getElementById('sample-B')?.disabled === false;
       if (page === 'spectrum.html') return current.getElementById('lab-images')?.dataset.preset === 'shifted-square' &&

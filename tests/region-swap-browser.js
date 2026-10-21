@@ -41,7 +41,7 @@ function compareCurrent() {
   metrics.displayedError = Math.max(metrics.displayedError, error); metrics.maskError = Math.max(metrics.maskError, maskError);
   assert(error === 0 && maskError === 0, `Displayed image/mask error ${error}/${maskError}`);
   assert(get('selected-fraction').textContent === `${(expected.stats.selectedFraction * 100).toFixed(2)}%`);
-  assert(get('validation').textContent.includes('共軛遮罩檢查通過'));
+  assert(get('validation').textContent.includes('Conjugate mask check passed'));
 }
 async function fixture(name) {
   const response = await fetch(new URL(`./fixtures/${name}`, import.meta.url));
@@ -123,7 +123,7 @@ await test('損壞／不支援／取消上傳保留有效來源與結果並釋�
   const before = pixels('image-A'), result = pixels('reconstruction');
   await upload('A', new win.File(['unsupported'], 'invalid.txt', { type: 'text/plain' }));
   assert(get('status').textContent.includes('PNG'));
-  await upload('A', await fixture('broken.png')); assert(get('status').textContent.includes('無法解碼'));
+  await upload('A', await fixture('broken.png')); assert(get('status').textContent.includes('Unable to decode'));
   await upload('A', null);
   assert(maxDifference(before, pixels('image-A')) === 0 && maxDifference(result, pixels('reconstruction')) === 0);
   assert(metrics.createdURLs === metrics.revokedURLs); compareCurrent();
@@ -155,7 +155,7 @@ await test('1280 / 1040 / 900 / 768 / 390 / 375 / 320px 無溢出，平板及手
         const panel = get('mask-type').closest('.region-controls'), controls = panel.getBoundingClientRect();
         const result = get('reconstruction').getBoundingClientRect();
         assert(controls.height < 250, `controls too tall for ${type} at ${width}`);
-        assert(result.top > controls.bottom && result.top - controls.bottom < 110, `result too far from ${type} controls`);
+        assert(result.top > controls.bottom && result.top - controls.bottom < 110, `result too far from ${type} controls at ${width}: gap ${result.top - controls.bottom}`);
         assert(result.width >= 240 && result.width <= 360 && result.top < get('phase-mask').getBoundingClientRect().top && result.top < get('image-A').getBoundingClientRect().top, 'full-size reconstruction must appear first without exceeding 360px');
         win.scrollTo(0, win.scrollY + result.top - controls.height - 24);
         await new Promise(resolve => win.requestAnimationFrame(resolve));
@@ -170,11 +170,13 @@ await test('1280 / 1040 / 900 / 768 / 390 / 375 / 320px 無溢出，平板及手
       assert(canvas.left >= surface.left - 1 && canvas.right <= surface.right + 1 &&
         canvas.top >= surface.top - 1 && canvas.bottom <= surface.bottom + 1, `${id} outside surface at ${width}`);
     }
-    for (const link of doc.querySelectorAll('.page-nav a')) {
+    doc.querySelector('.experiments-toggle').click();
+    for (const link of doc.querySelectorAll('.experiment-menu a')) {
       const box = link.getBoundingClientRect(); assert(box.width > 0 && box.left >= 0 && box.right <= width, `Navigation outside ${width}`);
     }
+    doc.querySelector('.experiments-toggle').click();
   }
-  assert(doc.querySelectorAll('.page-nav a').length === 4);
+  assert(doc.querySelectorAll('.experiment-menu a').length === 4);
   const base = new URL('../', import.meta.url).href;
   assert(win.performance.getEntriesByType('resource').every(entry => entry.name.startsWith(base) || entry.name.startsWith('blob:')));
   frame.style.width = '1040px'; frame.style.height = '1200px'; win.scrollTo(0, 0); compareCurrent();

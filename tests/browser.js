@@ -97,7 +97,7 @@ await test('真實 Web Worker：圖片解碼後的兩方向結果與直接核心
 worker.terminate();
 
 const frame = document.getElementById('app');
-frame.src = new URL('../index.html', import.meta.url).href;
+frame.src = new URL('../phase-swap.html', import.meta.url).href;
 await waitFor(() => {
   const app = frame.contentDocument;
   return app?.getElementById('result-AB')?.hidden === false
@@ -136,7 +136,7 @@ await test('實際頁面：預設兩張不同圖片自動完成，四張範例�
   assert(get('filename-A').textContent === 'Mountain lake' && get('filename-B').textContent === 'Coastal lighthouse');
   assert(maxDifference(canvasPixels('image-A'), canvasPixels('image-B')) > 0);
   assert(!get('result-AB').hidden && !get('result-BA').hidden);
-  assert(get('status').textContent.includes('交換完成'));
+  assert(get('status').textContent.includes('Swap complete'));
   assertAutomaticReconstruction();
   for (const slot of ['A', 'B']) {
     for (const [key, name] of [['sample-a.svg', 'Mountain lake'], ['sample-b.svg', 'Coastal lighthouse'], ['Monkey.jpg', 'Monkey.jpg'], ['Cat.jpg', 'Cat.jpg']]) {
@@ -153,7 +153,7 @@ await test('上傳 PNG／JPEG／WebP：同圖結果與畫面來源逐像素相�
     await upload('A', file); await upload('B', file);
     const expected = decoded[file].rgba;
     for (const id of ['image-A', 'image-B', 'result-AB', 'result-BA']) assert(maxDifference(canvasPixels(id), expected) === 0, `${file}/${id}`);
-    assert(get('stats-AB').textContent === '裁切 0.0%');
+    assert(get('stats-AB').textContent === 'Clipped 0.0%');
   }
 });
 await test('純黑／純白、拖放與重複上傳皆自動重建並保留預期亮度', async () => {
@@ -165,13 +165,13 @@ await test('純黑／純白、拖放與重複上傳皆自動重建並保留預�
     await upload('B', 'white.png');
     assert(maxDifference(canvasPixels('result-AB'), decoded['black.png'].rgba) === 0);
     assert(maxDifference(canvasPixels('result-BA'), decoded['white.png'].rgba) === 0);
-    assert(get('status').textContent.includes('交換完成') && controlsReady());
+    assert(get('status').textContent.includes('Swap complete') && controlsReady());
   }
 });
 await test('損壞圖片與取消選擇保留現有結果；釋放 Blob URL', async () => {
   const before = canvasPixels('result-BA');
   await upload('A', 'broken.png');
-  assert(get('status').textContent.includes('無法解碼'));
+  assert(get('status').textContent.includes('Unable to decode'));
   assert(maxDifference(canvasPixels('result-BA'), before) === 0);
   const input = get('upload-A'); input.value = ''; input.dispatchEvent(new win.Event('change', { bubbles: true }));
   assert(controlsReady() && !doc.body.classList.contains('is-busy'));
@@ -199,7 +199,7 @@ await test('Worker postMessage 拋錯後可重試；不破壞既有結果', asyn
     }
   } finally { win.Worker.prototype.postMessage = original; }
   await upload('A', 'rgb.png');
-  assert(get('status').textContent.includes('交換完成'));
+  assert(get('status').textContent.includes('Swap complete'));
   assert(maxDifference(canvasPixels('image-A'), decoded['rgb.png'].rgba) === 0);
   assertAutomaticReconstruction();
   assert(metrics.blobURLsCreated === metrics.blobURLsRevoked);

@@ -6,7 +6,9 @@
   "description": "FOURIER IMAGE LAB — Interactive Experiments in Fourier Image Processing.",
   "scripts": {
     "start": "node scripts/serve.mjs",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "localize": "node scripts/build-locales.mjs",
+    "check:locales": "node scripts/build-locales.mjs --check"
   },
   "engines": { "node": ">=20" }
 }

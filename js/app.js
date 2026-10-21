@@ -1,3 +1,4 @@
+import { t, sampleName, errorMessage } from './i18n.js';
 import { IMAGE_SIZE } from './fourier.js';
 import { prepareImage } from './image.js';
 import { SAMPLE_IMAGES, DEFAULT_SAMPLES } from './samples.js';
@@ -13,7 +14,7 @@ let busy = false;
 let workerFailed = false;
 
 function setStatus(message, error = false) {
-  $('status').textContent = message;
+  $('status').textContent = error ? errorMessage(message) : message;
   $('status').parentElement.classList.toggle('is-error', error);
 }
 
@@ -25,7 +26,7 @@ function setBusy(value) {
 }
 
 function request(type, payload = {}, transfer = []) {
-  if (workerFailed) return Promise.reject(new Error('運算程序無法使用，請重新整理頁面。'));
+  if (workerFailed) return Promise.reject(new Error(t('workerUnavailable')));
   return new Promise((resolve, reject) => {
     const id = ++nextId;
     pending.set(id, { resolve, reject });
@@ -40,7 +41,7 @@ function request(type, payload = {}, transfer = []) {
 
 function failWorker() {
   workerFailed = true;
-  const error = new Error('無法啟動背景運算。請使用本機 HTTP 伺服器或 GitHub Pages 開啟，並重新整理。');
+  const error = new Error(t('workerStart'));
   for (const job of pending.values()) job.reject(error);
   pending.clear();
   setStatus(error.message, true);
@@ -69,32 +70,32 @@ async function installImage(slot, prepared, filename, selection = 'upload') {
   for (const result of ['AB', 'BA']) {
     $(`result-${result}`).hidden = true;
     $(`empty-${result}`).hidden = false;
-    $(`stats-${result}`).textContent = '等待重建';
+    $(`stats-${result}`).textContent = t('waitingReconstruction');
   }
   $('timing').textContent = '2D IFFT';
-  $('residual').textContent = '虛部殘差將在重建後顯示。';
+  $('residual').textContent = t('residualWaiting');
 }
 
 async function swap() {
   if (!ready.A || !ready.B) {
-    setStatus('請上傳 Image A 與 Image B，兩張都載入後會自動交換。');
+    setStatus(t('needSwapInputs'));
     return;
   }
-  setStatus('正在交換三個顏色通道的相位並執行 IFFT…');
+  setStatus(t('swapping'));
   const { first, second, milliseconds } = await request('swap');
   for (const [name, result] of [['AB', first], ['BA', second]]) {
     draw(`result-${name}`, result.rgba);
     $(`empty-${name}`).hidden = true;
-    $(`stats-${name}`).textContent = `裁切 ${(result.stats.clippedFraction * 100).toFixed(1)}%`;
-    $(`stats-${name}`).title = `裁切前範圍：${result.stats.minimum.toFixed(2)} 至 ${result.stats.maximum.toFixed(2)}`;
+    $(`stats-${name}`).textContent = t('clipped', { percent: (result.stats.clippedFraction * 100).toFixed(1) });
+    $(`stats-${name}`).title = t('range', { min: result.stats.minimum.toFixed(2), max: result.stats.maximum.toFixed(2) });
   }
   $('timing').textContent = `${Math.round(milliseconds)} ms · 2D IFFT`;
   const residual = Math.max(first.stats.maxImaginary, second.stats.maxImaginary);
-  $('residual').textContent = `本次重建最大虛部殘差：${residual.toExponential(2)}（原始 0–255 像素尺度）。`;
+  $('residual').textContent = t('residual', { value: residual.toExponential(2) });
   if (residual > 1e-7) {
-    setStatus('重建完成，但虛部殘差偏高，請查看計算與顯示方式。', true);
+    setStatus(t('highResidual'), true);
   } else {
-    setStatus('交換完成。更換任一圖片會自動重新計算。');
+    setStatus(t('swapComplete'));
   }
 }
 
@@ -102,15 +103,15 @@ async function upload(slot, file) {
   if (busy || workerFailed || !file) return;
   const supported = ['image/png', 'image/jpeg', 'image/webp'];
   if (!(supported.includes(file.type) || (!file.type && /\.(png|jpe?g|webp)$/i.test(file.name)))) {
-    setStatus('請選擇 PNG、JPEG 或 WebP 圖片。', true);
+    setStatus(t('chooseFormat'), true);
     return;
   }
   if (file.size > 25 * 1024 * 1024) {
-    setStatus('圖片超過 25 MB，請先縮小檔案再上傳。', true);
+    setStatus(t('tooLarge'), true);
     return;
   }
   setBusy(true);
-  setStatus(`正在載入 Image ${slot}，並計算 RGB 頻譜…`);
+  setStatus(t('loadingSlot', { slot }));
   let url;
   try {
     url = URL.createObjectURL(file);
@@ -128,9 +129,9 @@ async function loadSample(slot, key) {
   if (busy || workerFailed || !Object.hasOwn(SAMPLE_IMAGES, key)) return;
   setBusy(true);
   const sample = SAMPLE_IMAGES[key];
-  setStatus(`正在載入 ${sample.name}，並計算 RGB 頻譜…`);
+  setStatus(t('loadingName', { name: sampleName(sample) }));
   try {
-    await installImage(slot, await prepareImage(sample.url), sample.name, key);
+    await installImage(slot, await prepareImage(sample.url), sampleName(sample), key);
     await swap();
   } catch (error) {
     $(`sample-${slot}`).value = selected[slot];
@@ -199,12 +200,12 @@ async function start() {
     worker.addEventListener('error', failWorker);
     worker.addEventListener('messageerror', failWorker);
     const check = await request('check');
-    $('validation').textContent = `FFT → IFFT 自我檢查${check.passed ? '通過' : '失敗'}：最大實部誤差 ${check.maxError.toExponential(2)}，最大虛部殘差 ${check.maxImaginary.toExponential(2)}。`;
+    $('validation').textContent = t('check', { result: t(check.passed ? 'passed' : 'failed'), real: check.maxError.toExponential(2), imag: check.maxImaginary.toExponential(2) });
     if (!check.passed) {
       workerFailed = true;
-      throw new Error('FFT 數值檢查未通過，已停止運算。');
+      throw new Error(t('checkFailed'));
     }
-    setStatus('正在載入資料夾中的兩張範例圖片…');
+    setStatus(t('loadingSamples'));
     // A failed sample never prevents users from supplying their own images.
     const samples = await Promise.allSettled([
       prepareImage(SAMPLE_IMAGES[DEFAULT_SAMPLES.A].url),
@@ -213,7 +214,7 @@ async function start() {
     for (const [index, slot] of ['A', 'B'].entries()) {
       if (samples[index].status === 'fulfilled') {
         const key = DEFAULT_SAMPLES[slot];
-        await installImage(slot, samples[index].value, SAMPLE_IMAGES[key].name, key);
+        await installImage(slot, samples[index].value, sampleName(SAMPLE_IMAGES[key]), key);
       }
     }
     await swap();
