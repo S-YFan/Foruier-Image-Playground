@@ -74,7 +74,8 @@ for (const zh of [false, true]) {
     const seen = new Set();
     for (const link of doc.querySelectorAll('a[href]')) {
       const url = new URL(link.href);
-      if (url.origin !== base.origin || seen.has(url.href)) continue;
+      // The author's separate Pages site shares our production origin.
+      if (url.origin !== base.origin || url.href === personalURL || seen.has(url.href)) continue;
       assert(url.pathname.startsWith(base.pathname), `repository prefix: ${url}`); seen.add(url.href);
       const response = await fetch(url); assert(response.ok, `${response.status}: ${url}`);
       if (url.hash && response.headers.get('content-type').includes('text/html')) {
