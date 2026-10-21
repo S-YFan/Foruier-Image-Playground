@@ -1,7 +1,7 @@
 const assert = (condition, message = 'Assertion failed') => { if (!condition) throw new Error(message); };
 const results = [], metrics = { viewports: [], pages: [], localLinks: [], formulas: {}, switches: [], navigation: [] };
 const base = new URL('../', import.meta.url);
-const personalURL = 'https://s-yfan.github.io/Personal-Website-for-ai-to-coding/';
+const personalURL = 'https://s-yfan.github.io/';
 const experiments = [['phase-swap.html', '001'], ['spectrum.html', '002'], ['filtering.html', '003'], ['region-swap.html', '004']];
 const files = ['index.html', 'documentation.html', ...experiments.map(([file]) => file)];
 const frame = document.getElementById('app');
