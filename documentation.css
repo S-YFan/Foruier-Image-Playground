@@ -1,0 +1,92 @@
+.docs-intro { padding: 56px 0 43px; border-bottom: 1px solid var(--line); }
+.docs-intro h1 { font-size: clamp(34px, 4.5vw, 50px); letter-spacing: -1.6px; }
+.docs-intro h1 span { color: var(--green); }
+.docs-intro > p:last-child { max-width: 570px; margin: 20px 0 0; color: var(--muted); font-size: 14px; line-height: 1.85; }
+.docs-section .docs-citation { margin-top: 23px; padding-left: 16px; border-left: 2px solid var(--peach); font-size: 11px; line-height: 1.9; }
+.docs-section .docs-quick-start { padding: 15px 0; border-bottom: 1px solid var(--line); }
+.docs-section .docs-reference-note { margin-top: 24px; font-size: 11px; }
+.docs-layout { display: grid; grid-template-columns: 208px minmax(0, 1fr); gap: 50px; padding-top: 38px; }
+.docs-toc { position: sticky; top: 24px; align-self: start; padding: 4px 0 20px; font-family: var(--mono); }
+.docs-toc > p { margin: 0 0 20px; color: var(--muted); font-size: 9px; letter-spacing: 1.6px; }
+.docs-toc ol { list-style: none; padding: 0; margin: 0; }
+.docs-toc li + li { margin-top: 5px; }
+.docs-toc li a { display: flex; gap: 12px; padding: 9px 0; font-size: 10px; line-height: 1.6; color: #c0cdc3; text-decoration: none; }
+.docs-toc li a span { color: #82978a; font-size: 9px; }
+.docs-toc li a:hover, .docs-toc li a:focus-visible { color: var(--green); }
+.docs-toc .docs-start { display: flex; justify-content: space-between; gap: 8px; margin-top: 25px; padding: 16px 0; border-top: 1px solid var(--line); font-size: 10px; color: var(--green); text-decoration: none; }
+.docs-content { min-width: 0; }
+.docs-section { padding: 0 0 36px; scroll-margin-top: 28px; }
+.docs-section + .docs-section { border-top: 1px solid var(--line); padding-top: 34px; }
+.docs-section h2 { display: flex; align-items: baseline; gap: 14px; margin: 0 0 22px; font: 500 19px/1.45 var(--mono); letter-spacing: -.6px; }
+.docs-section h2 .docs-number { flex-shrink: 0; color: var(--green); font-size: 10px; letter-spacing: .5px; }
+.docs-section h3 { display: block; margin: 25px 0 12px; font: 500 13px/1.65 var(--mono); color: #d9e7dc; }
+.docs-section p, .docs-steps li { color: #aebdb2; font-size: 13px; line-height: 1.95; margin: 0 0 14px; overflow-wrap: anywhere; }
+.docs-section p:last-child { margin-bottom: 0; }
+.docs-section a { color: var(--green); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.docs-section a:hover { color: #e2f6e3; }
+.docs-section strong { color: #d6e2d8; font-weight: 500; }
+.docs-steps { padding-left: 21px; margin: 0; }
+.docs-steps li { padding-left: 6px; margin-bottom: 15px; }
+.docs-steps li::marker { color: var(--peach); font: 11px var(--mono); }
+.docs-note { margin-top: 22px; padding: 17px 20px; border-left: 2px solid var(--peach); background: #19201b; }
+.docs-note > strong { display: block; margin-bottom: 7px; color: var(--peach); font: 11px var(--mono); }
+.docs-note p { font-size: 12px; line-height: 1.9; }
+.docs-experiments { margin-top: 23px; }
+.docs-experiments article { padding: 20px 0; border-top: 1px solid #2b362e; }
+.docs-experiments article:last-child { padding-bottom: 0; }
+.docs-experiments article > a { display: flex; align-items: baseline; gap: 13px; text-decoration: none; }
+.docs-experiments article > a > span { flex-shrink: 0; color: var(--peach); font: 10px var(--mono); }
+.docs-experiments article > a > span:last-child { margin-left: auto; color: var(--green); }
+.docs-experiments h3 { color: var(--green); margin: 0; font-size: 12px; }
+.docs-experiments article > p { margin: 10px 0 0 33px; font-size: 12px; }
+.docs-equation { overflow-x: auto; overflow-y: hidden; max-width: 100%; margin: 18px 0 19px; padding: 18px 13px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel); color: #d4e7d7; font-size: 13px; text-align: center; }
+.docs-equation .katex-display { margin: 0; }
+.docs-section .katex { font-size: 1.08em; }
+.docs-section p .katex { white-space: normal; }
+.docs-equation .katex { white-space: nowrap; }
+.docs-section code { color: #d4dfd6; font: 11px var(--mono); }
+.docs-details { margin-top: 24px; border: 1px solid var(--line); border-radius: 6px; background: #141b17; }
+.docs-details summary { gap: 14px; font: 11px/1.7 var(--mono); }
+.docs-details summary > span { flex-shrink: 0; }
+.docs-details > div { padding: 0 18px 18px; }
+.docs-details p { font-size: 12px; }
+.docs-details .docs-equation { font-size: 12px; }
+.docs-resource-links { display: flex; flex-wrap: wrap; gap: 13px 24px; margin-top: 23px; }
+.docs-resource-links a { display: inline-flex; gap: 12px; padding: 7px 0; font: 11px var(--mono); text-decoration: none; }
+.docs-credits p { font-size: 12px; }
+.docs-back { display: inline-block; margin-top: 22px; font: 10px var(--mono); text-decoration: none; }
+.docs-back > span { margin-left: 9px; }
+@media (max-width: 900px) {
+  .docs-layout { grid-template-columns: 172px minmax(0, 1fr); gap: 28px; }
+  .docs-section h2 { font-size: 17px; }
+}
+@media (max-width: 760px) {
+  .docs-intro { padding: 38px 0 30px; }
+  .docs-layout { display: block; padding-top: 0; }
+  .docs-toc { position: static; padding: 26px 0 24px; margin-bottom: 28px; border-bottom: 1px solid var(--line); }
+  .docs-toc > p { margin-bottom: 12px; }
+  .docs-toc ol { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 15px; }
+  .docs-toc li + li { margin-top: 0; }
+  .docs-toc li a { font-size: 10px; gap: 8px; }
+  .docs-toc .docs-start { display: none; }
+  .docs-section h2 { font-size: 18px; gap: 11px; }
+  .docs-section + .docs-section { padding-top: 28px; }
+  .docs-section { padding-bottom: 28px; }
+  .docs-equation { font-size: 12px; padding: 17px 8px; }
+  .docs-details .docs-equation { font-size: 11px; }
+}
+@media (max-width: 420px) {
+  .docs-intro h1 { font-size: 33px; letter-spacing: -1.3px; }
+  .docs-intro > p:last-child { font-size: 13px; }
+  .docs-toc li a { font-size: 9px; }
+  .docs-section h2 { font-size: 16px; letter-spacing: -.5px; }
+  .docs-section p, .docs-steps li { font-size: 12px; line-height: 1.9; }
+  .docs-note { padding: 15px; }
+  .docs-section .katex { font-size: 1em; }
+  .docs-experiments article > p { margin-left: 0; }
+  .docs-experiments article > a { gap: 10px; }
+  .docs-experiments h3 { font-size: 11px; }
+  .docs-details summary { font-size: 10px; padding: 14px 12px; }
+  .docs-details > div { padding: 0 12px 14px; }
+  .docs-details .docs-equation { padding: 14px 5px; font-size: 10px; }
+}

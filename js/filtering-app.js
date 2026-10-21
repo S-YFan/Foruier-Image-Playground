@@ -1,3 +1,4 @@
+import { t, sampleName, errorMessage } from './i18n.js';
 import { IMAGE_SIZE } from './fourier.js';
 import { DEFAULT_SIGMA, DEFAULT_ALPHA } from './filtering.js';
 import { prepareImage } from './image.js';
@@ -21,7 +22,7 @@ let sourceError = null;
 let selected = 'sample-a.svg';
 
 function setStatus(message, error = false) {
-  $('status').textContent = message;
+  $('status').textContent = error ? errorMessage(message) : message;
   $('status').parentElement.classList.toggle('is-error', error);
 }
 
@@ -40,7 +41,7 @@ function updateBusy() {
 }
 
 function request(type, payload = {}, transfer = []) {
-  if (failed) return Promise.reject(new Error('運算程序無法使用，請重新整理頁面。'));
+  if (failed) return Promise.reject(new Error(t('workerUnavailable')));
   return new Promise((resolve, reject) => {
     const id = ++nextId;
     pending.set(id, { resolve, reject });
@@ -51,7 +52,7 @@ function request(type, payload = {}, transfer = []) {
 
 function failWorker() {
   failed = true;
-  const error = new Error('無法啟動背景運算，請透過 HTTP / HTTPS 開啟並重新整理頁面。');
+  const error = new Error(t('workerStart'));
   for (const job of pending.values()) job.reject(error);
   pending.clear();
   updateBusy();
@@ -79,7 +80,7 @@ async function filter() {
   group.dirty = false;
   processing = lastGroup = name;
   updateBusy();
-  if (!sourceError) setStatus(`正在計算 ${name === 'pass' ? 'LPF / HPF' : 'Sharpening'} 的 RGB IFFT…`);
+  if (!sourceError) setStatus(t('filtering', { group: t(name === 'pass' ? 'passGroup' : 'sharpenGroup') }));
   try {
     const result = await request('filter', { group: name, ...parameters });
     if (source !== sourceRevision || current !== group.revision || loading || failed) return;
@@ -91,7 +92,7 @@ async function filter() {
     group.error = null;
     if (!Object.values(groups).some(group => group.dirty)) {
       const error = sourceError || Object.values(groups).find(group => group.error)?.error;
-      setStatus(error || '重建完成。兩個區段的參數可獨立調整。', Boolean(error));
+      setStatus(error || t('filterReady'), Boolean(error));
     }
   } catch (error) {
     if (source === sourceRevision && current === group.revision) {
@@ -113,7 +114,7 @@ async function loadSource(url, filename, selection) {
   for (const group of Object.values(groups)) { group.dirty = true; group.error = null; }
   sourceControls();
   updateBusy();
-  setStatus(`正在載入 ${filename} 並計算 RGB 頻譜…`);
+  setStatus(t('loadingName', { name: filename }));
   try {
     const prepared = await prepareImage(url);
     // Decode once; use the same display pixels for both Original canvases.
@@ -167,7 +168,7 @@ $('example').addEventListener('change', () => {
   const name = $('example').value;
   if (!Object.hasOwn(SAMPLE_IMAGES, name)) return;
   const sample = SAMPLE_IMAGES[name];
-  void loadSource(sample.url, sample.name, name);
+  void loadSource(sample.url, sampleName(sample), name);
 });
 
 $('upload').addEventListener('change', async () => {
@@ -176,11 +177,11 @@ $('upload').addEventListener('change', async () => {
   if (!file || loading || failed) return;
   if (!(['image/png', 'image/jpeg', 'image/webp'].includes(file.type) ||
     (!file.type && /\.(png|jpe?g|webp)$/i.test(file.name)))) {
-    setStatus('請選擇 PNG、JPEG 或 WebP 圖片。', true);
+    setStatus(t('chooseFormat'), true);
     return;
   }
   if (file.size > 25 * 1024 * 1024) {
-    setStatus('圖片超過 25 MB，請先縮小檔案再上傳。', true);
+    setStatus(t('tooLarge'), true);
     return;
   }
   const url = URL.createObjectURL(file);
@@ -200,5 +201,5 @@ try {
   worker.addEventListener('error', failWorker);
   worker.addEventListener('messageerror', failWorker);
   const sample = SAMPLE_IMAGES[selected];
-  void loadSource(sample.url, sample.name, selected);
+  void loadSource(sample.url, sampleName(sample), selected);
 } catch { failWorker(); }

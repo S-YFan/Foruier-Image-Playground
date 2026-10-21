@@ -230,19 +230,21 @@ await test('Worker 傳送失敗保留七張圖，控制項仍可用並可重試'
 });
 await test('兩頁實際導航與 Playground 預設重建在 repository 子路徑正常運作', async () => {
   const base = new URL('../', import.meta.url).href; metrics.baseURL = base;
-  doc.querySelector('.page-nav a[href="./index.html"]').click();
-  await waitFor(() => frame.contentDocument?.getElementById('status')?.textContent.includes('交換完成') && frame.contentDocument?.getElementById('results')?.getAttribute('aria-busy') === 'false', 'Playground navigation');
+  doc.querySelector('.experiments-toggle').click();
+  doc.querySelector('.experiment-menu a[href$="/phase-swap.html"]').click();
+  await waitFor(() => frame.contentDocument?.getElementById('status')?.textContent.includes('Swap complete') && frame.contentDocument?.getElementById('results')?.getAttribute('aria-busy') === 'false', 'Playground navigation');
   doc = frame.contentDocument;
-  assert(frame.contentWindow.location.href === new URL('index.html', base).href);
-  assert(doc.getElementById('status').textContent.includes('交換完成'));
+  assert(frame.contentWindow.location.href === new URL('phase-swap.html', base).href);
+  assert(doc.getElementById('status').textContent.includes('Swap complete'));
   assert(!doc.getElementById('result-AB').hidden && !doc.getElementById('result-BA').hidden);
-  doc.querySelector('.page-nav a[href="./spectrum.html"]').click();
+  doc.querySelector('.experiments-toggle').click();
+  doc.querySelector('.experiment-menu a[href$="/spectrum.html"]').click();
   await waitFor(() => frame.contentDocument?.getElementById('lab-images')?.dataset.preset === 'shifted-square', 'Spectrum return');
   doc = frame.contentDocument; win = frame.contentWindow;
   await settle('return initialization');
   verifyTranslation(0, 0);
   assert(win.location.href === new URL('spectrum.html', base).href);
-  assert(doc.querySelector('.page-nav [aria-current="page"]').textContent.trim() === '002 Spectrum Lab');
+  assert(doc.querySelector('.experiment-menu [aria-current="page"]').textContent.replace('↗', '').trim() === '002 Spectrum / Translation');
 });
 await test('樣式、ES module 與 Worker 的實際資源載入均保留 repository 前綴', () => {
   const base = new URL('../', import.meta.url).href;

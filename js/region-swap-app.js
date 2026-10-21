@@ -1,3 +1,4 @@
+import { t, sampleName, errorMessage } from './i18n.js';
 import { IMAGE_SIZE } from './fourier.js';
 import { prepareImage } from './image.js';
 import { DEFAULT_PARAMETERS } from './region-swap.js';
@@ -13,7 +14,7 @@ let loading = false, processing = false, dirty = true, failed = false;
 let sourceError = null;
 
 function setStatus(message, error = false) {
-  $('status').textContent = message;
+  $('status').textContent = error ? errorMessage(message) : message;
   $('status').parentElement.classList.toggle('is-error', error);
 }
 
@@ -28,7 +29,7 @@ function updateState() {
 }
 
 function request(type, payload = {}, transfer = []) {
-  if (failed) return Promise.reject(new Error('運算程序無法使用，請重新整理頁面。'));
+  if (failed) return Promise.reject(new Error(t('workerUnavailable')));
   return new Promise((resolve, reject) => {
     const id = ++nextId;
     pending.set(id, { resolve, reject });
@@ -39,7 +40,7 @@ function request(type, payload = {}, transfer = []) {
 
 function failWorker() {
   failed = true;
-  const error = new Error('無法啟動背景運算，請透過 HTTP / HTTPS 開啟並重新整理頁面。');
+  const error = new Error(t('workerStart'));
   for (const job of pending.values()) job.reject(error);
   pending.clear();
   updateState();
@@ -57,15 +58,15 @@ function clearResult() {
   for (const id of ['empty-mask', 'empty-result']) $(id).hidden = false;
   for (const id of ['selected-fraction', 'energy-fraction']) $(id).textContent = '—';
   $('timing').textContent = '2D IFFT';
-  $('clipping').textContent = '等待重建';
-  $('validation').textContent = '數值檢查會隨每次重建更新。';
+  $('clipping').textContent = t('waitingReconstruction');
+  $('validation').textContent = t('numericalWaiting');
   delete $('comparison').dataset.parameters;
 }
 
 function maskLabel(state) {
-  if (state.type === 'disk') return `Low-frequency disk · r ≤ ${state.cutoff.toFixed(2)}`;
-  if (state.type === 'quadrants') return `Quadrants · ${{ 'ul-lr': 'UL + LR', 'ur-ll': 'UR + LL', both: 'Both pairs' }[state.quadrants]}`;
-  return `${state.orientation === 'vertical' ? 'Vertical' : 'Horizontal'} stripes · ${state.stripeWidth} bins`;
+  if (state.type === 'disk') return t('diskLabel', { radius: state.cutoff.toFixed(2) });
+  if (state.type === 'quadrants') return t('quadrantsLabel', { pair: t({ 'ul-lr': 'ulLr', 'ur-ll': 'urLl', both: 'bothPairs' }[state.quadrants]) });
+  return t('stripesLabel', { orientation: t(state.orientation), width: state.stripeWidth });
 }
 
 // Keep one reconstruction in flight and only the latest parameter state queued.
@@ -76,7 +77,7 @@ async function reconstruct() {
   processing = true;
   const current = revision, state = { ...parameters };
   updateState();
-  if (!sourceError) setStatus('正在選擇相位並計算 RGB IFFT…');
+  if (!sourceError) setStatus(t('reconstructing'));
   try {
     const result = await request('reconstruct', { parameters: state });
     if (current !== revision || loading || failed) return;
@@ -86,13 +87,13 @@ async function reconstruct() {
     $('mask-caption').textContent = maskLabel(state);
     const { stats } = result;
     $('selected-fraction').textContent = `${(stats.selectedFraction * 100).toFixed(2)}%`;
-    $('energy-fraction').textContent = stats.energyFraction === null ? '未定義（A 能量為 0）' : `${(stats.energyFraction * 100).toFixed(2)}%`;
-    $('clipping').textContent = `顯示裁切 ${(stats.clippedFraction * 100).toFixed(2)}%`;
-    $('clipping').title = `裁切前範圍：${stats.minimum.toFixed(2)} 至 ${stats.maximum.toFixed(2)}`;
+    $('energy-fraction').textContent = stats.energyFraction === null ? t('energyUndefined') : `${(stats.energyFraction * 100).toFixed(2)}%`;
+    $('clipping').textContent = t('displayClipped', { percent: (stats.clippedFraction * 100).toFixed(2) });
+    $('clipping').title = t('range', { min: stats.minimum.toFixed(2), max: stats.maximum.toFixed(2) });
     $('timing').textContent = `${Math.round(result.milliseconds)} ms · 2D IFFT`;
-    $('validation').textContent = `共軛遮罩檢查通過；最大虛部殘差 ${stats.maxImaginary.toExponential(2)}；最大振幅誤差 ${stats.maxMagnitudeError.toExponential(2)}；依每格 max(1, |F_A|) 縮放的振幅誤差 ${stats.maxScaledMagnitudeError.toExponential(2)}。`;
+    $('validation').textContent = t('regionCheck', { imag: stats.maxImaginary.toExponential(2), magnitude: stats.maxMagnitudeError.toExponential(2), scaled: stats.maxScaledMagnitudeError.toExponential(2) });
     $('comparison').dataset.parameters = JSON.stringify(state);
-    setStatus(sourceError || '重建完成。調整遮罩或更換圖片會自動更新。', Boolean(sourceError));
+    setStatus(sourceError || t('regionReady'), Boolean(sourceError));
   } catch (error) {
     if (current === revision) setStatus(error.message, true);
   } finally {
@@ -109,7 +110,7 @@ async function loadSource(slot, url, filename, selection = 'upload') {
   dirty = true;
   sourceError = null;
   updateState();
-  setStatus(`正在載入 Image ${slot} 並計算 RGB 頻譜…`);
+  setStatus(t('loadingSlot', { slot }));
   try {
     const prepared = await prepareImage(url);
     const display = prepared.rgba.slice();
@@ -132,7 +133,7 @@ async function loadSource(slot, url, filename, selection = 'upload') {
     updateState();
   }
   if (!ready.A || !ready.B) {
-    if (!sourceError) setStatus('請上傳 Image A 與 Image B，兩張都載入後會自動重建。');
+    if (!sourceError) setStatus(t('needRegionInputs'));
   } else {
     void reconstruct();
   }
@@ -142,11 +143,11 @@ async function upload(slot, file) {
   if (!file || loading || failed) return;
   if (!(['image/png', 'image/jpeg', 'image/webp'].includes(file.type) ||
     (!file.type && /\.(png|jpe?g|webp)$/i.test(file.name)))) {
-    setStatus('請選擇 PNG、JPEG 或 WebP 圖片。', true);
+    setStatus(t('chooseFormat'), true);
     return;
   }
   if (file.size > 25 * 1024 * 1024) {
-    setStatus('圖片超過 25 MB，請先縮小檔案再上傳。', true);
+    setStatus(t('tooLarge'), true);
     return;
   }
   const url = URL.createObjectURL(file);
@@ -165,11 +166,11 @@ for (const slot of ['A', 'B']) {
     const key = $(`sample-${slot}`).value;
     if (!Object.hasOwn(SAMPLE_IMAGES, key)) return;
     const sample = SAMPLE_IMAGES[key];
-    void loadSource(slot, sample.url, sample.name, key);
+    void loadSource(slot, sample.url, sampleName(sample), key);
   });
   $(`reset-${slot}`).addEventListener('click', () => {
     const key = DEFAULT_SAMPLES[slot], sample = SAMPLE_IMAGES[key];
-    void loadSource(slot, sample.url, sample.name, key);
+    void loadSource(slot, sample.url, sampleName(sample), key);
   });
   card.addEventListener('dragover', event => {
     event.preventDefault();
@@ -216,7 +217,7 @@ async function start() {
     worker.addEventListener('messageerror', failWorker);
     for (const slot of ['A', 'B']) {
       const key = DEFAULT_SAMPLES[slot], sample = SAMPLE_IMAGES[key];
-      await loadSource(slot, sample.url, sample.name, key);
+      await loadSource(slot, sample.url, sampleName(sample), key);
     }
   } catch { failWorker(); }
 }

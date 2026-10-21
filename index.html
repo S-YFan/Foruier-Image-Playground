@@ -1,143 +1,82 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101513">
   <meta name="application-name" content="FOURIER IMAGE LAB">
-  <meta name="description" content="FOURIER IMAGE LAB：Interactive Experiments in Fourier Image Processing。交換 RGB 圖片的 Fourier 振幅與相位，所有運算皆在本機完成。">
-  <title>Experiment 001 — RGB Fourier Phase Swap — FOURIER IMAGE LAB</title>
+  <meta name="description" content="Explore images beyond pixels. An open source lab for understanding spatial frequency, Fourier magnitude, phase, and image reconstruction through four interactive experiments.">
+  <title>FOURIER IMAGE LAB — Explore Images Beyond Pixels</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
-  <script type="module" src="./js/app.js"></script>
+  <link rel="stylesheet" href="./site.css">
+  <link rel="stylesheet" href="./home.css">
+  <link rel="stylesheet" href="./assets/katex/katex.min.css">
+  <script type="module" src="./js/site.js"></script>
+  <script src="./assets/katex/katex.min.js" defer></script>
+  <script src="./js/math.js" defer></script>
+  <script type="module" src="./js/home.js"></script>
 </head>
-<body class="phase-swap-page">
+<body class="home-page" data-page="home">
   <div class="page-shell">
-    <header class="topbar">
-      <a class="brand" href="./" aria-label="FOURIER IMAGE LAB 首頁">
-        <span class="brand-mark" aria-hidden="true">ƒ</span>
-        <span>FOURIER IMAGE LAB<span class="brand-divider">/</span><span class="brand-light">PLAYGROUND</span></span>
-      </a>
-      <span class="local-badge"><span class="status-dot"></span> 全程在你的瀏覽器運算</span>
-    </header>
-    <nav class="page-nav" aria-label="實驗室頁面">
-      <a href="./index.html" aria-current="page"><span class="nav-number">001</span> RGB Fourier Phase Swap</a>
-      <span aria-hidden="true">/</span>
-      <a href="./spectrum.html"><span class="nav-number">002</span> Spectrum Lab</a>
-      <span aria-hidden="true">/</span>
-      <a href="./filtering.html"><span class="nav-number">003</span> Gaussian Filtering</a>
-      <span aria-hidden="true">/</span>
-      <a href="./region-swap.html"><span class="nav-number">004</span> Partial Phase Region Swap</a>
-    </nav>
-
-    <main>
-      <section class="intro" aria-labelledby="page-title">
-        <div class="intro-copy">
-          <p class="eyebrow"><span>EXPERIMENT 001</span><span class="eyebrow-line"></span> RGB FOURIER PHASE SWAP</p>
-          <h1 id="page-title">FOURIER <br><span>IMAGE LAB</span><span class="title-dot">.</span></h1>
-          <p class="subtitle" lang="en">Interactive Experiments in Fourier Image Processing</p>
-          <p class="intro-description">RGB Fourier Phase Swap：交換兩張圖片的相位，看看熟悉的輪廓如何出現在另一張圖片裡。</p>
+    <div data-site-header></div>
+    <main id="main-content">
+      <section class="home-hero" aria-labelledby="home-title">
+        <div>
+          <p class="eyebrow"><span>AN OPEN SOURCE LAB</span><span class="eyebrow-line"></span> IMAGE × FREQUENCY</p>
+          <h1 id="home-title">FOURIER<span>IMAGE LAB<span class="title-dot">.</span></span></h1>
+          <p class="home-tagline">Explore Images Beyond Pixels.</p>
         </div>
-        <div class="signal-art" aria-hidden="true">
-          <svg viewBox="0 0 220 160" fill="none">
-            <path class="signal-grid" d="M0 40H220M0 80H220M0 120H220M30 0V160M70 0V160M110 0V160M150 0V160M190 0V160"/>
-            <path class="signal-a" d="M0 80C18 80 18 24 37 24S55 136 74 136S92 24 111 24S129 136 148 136S166 24 185 24S203 80 220 80"/>
-            <path class="signal-b" d="M0 113C18 113 18 47 37 47S55 113 74 113S92 47 111 47S129 113 148 113S166 47 185 47S203 113 220 113"/>
-            <circle cx="111" cy="24" r="4" fill="currentColor"/>
-          </svg>
-          <span>|F| · e<sup>iφ</sup></span>
+        <div class="hero-description">
+          <p>We usually see an image as a grid of pixels. It can also be understood as a combination of spatial frequencies.</p>
+          <p>Change their magnitude, shift their phase, or filter the spectrum. Observe how an image comes back together—and connect an abstract idea to something you can see.</p>
+          <div class="hero-actions">
+            <a class="hero-primary" href="#experiments">Explore Experiments <span aria-hidden="true">↓</span></a>
+            <a class="hero-secondary" href="https://github.com/S-YFan/Foruier-Image-Playground" target="_blank" rel="noopener noreferrer">GitHub Repository <span aria-hidden="true">↗</span></a>
+          </div>
         </div>
       </section>
 
-      <section class="experiment" aria-label="Fourier 相位交換實驗">
-        <div class="section-heading">
-          <h2><span class="section-number">01</span> 選擇兩張圖片 <span class="heading-en">INPUTS</span></h2>
-          <span class="technical-label">256 × 256 <span>·</span> RGB</span>
+      <section class="fourier-story" aria-labelledby="why-fourier">
+        <h2 class="home-section-title" id="why-fourier"><span>01 /</span> Why Fourier Transform?</h2>
+        <p class="story-intro">Pixels tell us what is at each position. A Fourier spectrum reveals patterns of variation: broad changes, fine detail, and repeated structures. Looking at both helps us ask which frequency components contribute to what we see.</p>
+        <div class="spectrum-flow" role="group" aria-label="An image transformed into its Fourier magnitude and phase">
+          <figure class="flow-original">
+            <canvas id="home-source" width="256" height="256" role="img" aria-label="Red channel of the Monkey.jpg sample photograph">Red-channel sample image</canvas>
+            <figcaption>Original image <span>SPATIAL</span></figcaption>
+          </figure>
+          <div class="transform-step">Fourier<br>Transform <span aria-hidden="true">→</span></div>
+          <figure>
+            <canvas id="home-magnitude" width="256" height="256" role="img" aria-label="Actual centered log magnitude spectrum of the sample red channel">Magnitude spectrum</canvas>
+            <figcaption class="magnitude-label">Magnitude <span>|F|</span></figcaption>
+          </figure>
+          <figure>
+            <canvas id="home-phase" width="256" height="256" role="img" aria-label="Actual centered phase spectrum; near-zero magnitude bins are gray">Phase spectrum</canvas>
+            <figcaption class="phase-label">Phase <span>φ</span></figcaption>
+          </figure>
         </div>
-        <div class="image-grid inputs">
-          <article class="image-card source-card" id="card-A">
-            <div class="card-heading">
-              <h3><span class="letter-badge color-a">A</span> Image A</h3>
-              <label class="upload-label" for="upload-A">上傳圖片 <span aria-hidden="true">↗</span></label>
-              <input class="file-input" id="upload-A" type="file" accept="image/png,image/jpeg,image/webp" aria-label="上傳 Image A" aria-describedby="upload-policy">
-            </div>
-            <label class="image-surface source-surface" for="upload-A">
-              <canvas id="image-A" width="256" height="256" role="img" aria-label="Image A：裁切後的來源圖片" hidden></canvas>
-              <span class="empty-state" id="empty-A"><span class="empty-symbol">＋</span>選擇或拖放圖片<span>PNG · JPEG · WebP</span></span>
-              <span class="image-hover" aria-hidden="true">替換 Image A ↗</span>
-              <span class="corner-tag">SOURCE A</span>
-            </label>
-            <div class="image-caption"><span id="filename-A">等待圖片</span><span id="dimensions-A">—</span></div>
-            <div class="sample-picker"><label for="sample-A">範例圖片 A</label><select id="sample-A"><option value="sample-a.svg">Mountain lake · 山景</option><option value="sample-b.svg">Coastal lighthouse · 燈塔</option><option value="Monkey.jpg">Monkey.jpg</option><option value="Cat.jpg">Cat.jpg</option><option value="upload" disabled hidden>自選圖片</option></select></div>
-          </article>
-          <article class="image-card source-card" id="card-B">
-            <div class="card-heading">
-              <h3><span class="letter-badge color-b">B</span> Image B</h3>
-              <label class="upload-label" for="upload-B">上傳圖片 <span aria-hidden="true">↗</span></label>
-              <input class="file-input" id="upload-B" type="file" accept="image/png,image/jpeg,image/webp" aria-label="上傳 Image B" aria-describedby="upload-policy">
-            </div>
-            <label class="image-surface source-surface" for="upload-B">
-              <canvas id="image-B" width="256" height="256" role="img" aria-label="Image B：裁切後的來源圖片" hidden></canvas>
-              <span class="empty-state" id="empty-B"><span class="empty-symbol">＋</span>選擇或拖放圖片<span>PNG · JPEG · WebP</span></span>
-              <span class="image-hover" aria-hidden="true">替換 Image B ↗</span>
-              <span class="corner-tag">SOURCE B</span>
-            </label>
-            <div class="image-caption"><span id="filename-B">等待圖片</span><span id="dimensions-B">—</span></div>
-            <div class="sample-picker"><label for="sample-B">範例圖片 B</label><select id="sample-B"><option value="sample-a.svg">Mountain lake · 山景</option><option value="sample-b.svg" selected>Coastal lighthouse · 燈塔</option><option value="Monkey.jpg">Monkey.jpg</option><option value="Cat.jpg">Cat.jpg</option><option value="upload" disabled hidden>自選圖片</option></select></div>
-          </article>
+        <p class="spectrum-caption" data-spectrum-status role="status">Computing the example spectrum from Monkey.jpg…</p>
+        <noscript><p class="story-intro">Enable JavaScript to view the computed example and interactive experiments. <a href="./documentation.html">Read the documentation</a> for the mathematical background.</p></noscript>
+        <div class="home-equation" data-math data-display>F(u,v)=|F(u,v)|e^{i\phi(u,v)}</div>
+        <div class="polar-notes">
+          <p><strong>Magnitude</strong>The amplitude of each spatial frequency component. It tells us how strongly that component contributes.</p>
+          <p><strong>Phase</strong>The phase of each component. How these components align has an important influence on spatial structure in the reconstructed image.</p>
         </div>
-        <p class="upload-policy" id="upload-policy">置中裁切為正方形 → 縮放至 256 × 256。保留 RGB，透明區域以白色合成。每張上限 25 MB。</p>
+      </section>
 
-        <div class="status-line"><span id="status-dot" class="status-dot"></span><p id="status" role="status" aria-live="polite">正在啟動實驗… 若持續停留，請使用 npm start 開啟本機預覽。</p></div>
-        <noscript><p class="error-note">這個實驗需要啟用 JavaScript。圖片只會在你的瀏覽器內處理。</p></noscript>
-
-        <div class="section-heading results-heading">
-          <h2><span class="section-number">02</span> 看看交換的結果 <span class="heading-en">RECONSTRUCTIONS</span></h2>
-          <span class="technical-label" id="timing">2D IFFT</span>
-        </div>
-        <div class="mobile-source-controls" id="mobile-source-controls" aria-label="更換來源圖片並自動重建" hidden>
-          <p>更換 A 或 B，立即查看下方重建結果。<span lang="en">Live reconstruction</span></p>
-          <div id="mobile-control-A" class="mobile-source-control"></div>
-          <div id="mobile-control-B" class="mobile-source-control"></div>
-        </div>
-        <div class="image-grid results" id="results" aria-busy="false">
-          <article class="image-card result-card">
-            <div class="card-heading result-title"><h3><span class="color-a">Magnitude A</span><span class="plus">+</span><span class="color-b">Phase B</span></h3><span class="result-index">01</span></div>
-            <div class="image-surface result-surface">
-              <canvas id="result-AB" width="256" height="256" role="img" aria-label="重建結果：Image A 的振幅加上 Image B 的相位" hidden></canvas>
-              <span class="empty-state" id="empty-AB"><span class="empty-symbol">↔</span>兩張圖片，一個新的視角<span>載入圖片後自動重建</span></span>
-              <span class="corner-tag">A → B</span>
-            </div>
-            <div class="result-caption"><p>A 的頻率強度，B 的相位。</p><span id="stats-AB">等待重建</span></div>
-          </article>
-          <article class="image-card result-card">
-            <div class="card-heading result-title"><h3><span class="color-b">Magnitude B</span><span class="plus">+</span><span class="color-a">Phase A</span></h3><span class="result-index">02</span></div>
-            <div class="image-surface result-surface">
-              <canvas id="result-BA" width="256" height="256" role="img" aria-label="重建結果：Image B 的振幅加上 Image A 的相位" hidden></canvas>
-              <span class="empty-state" id="empty-BA"><span class="empty-symbol">↔</span>兩張圖片，一個新的視角<span>載入圖片後自動重建</span></span>
-              <span class="corner-tag">B → A</span>
-            </div>
-            <div class="result-caption"><p>B 的頻率強度，A 的相位。</p><span id="stats-BA">等待重建</span></div>
-          </article>
-        </div>
-
-        <div class="experiment-note">
-          <span class="note-icon" aria-hidden="true">i</span>
-          <p><strong>你還認得出原本的圖片嗎？</strong> 振幅描述不同空間頻率的強弱；相位描述它們如何對齊，常對輪廓與位置有關鍵影響。試著比較上下兩排。</p>
-        </div>
-        <details class="method-details">
-          <summary>計算與顯示方式 <span aria-hidden="true">＋</span></summary>
-          <div class="method-content">
-            <p class="formula">I′ = Re{ IFFT2( |FFT2(A)| · exp(i · arg(FFT2(B))) ) }</p>
-            <p>R、G、B 分別運算後合併。正向 FFT 不縮放；反向每一維除以 256，總共除以 65,536。計算使用原始頻率排列，不做 fftshift。</p>
-            <p>顯示值 = round(clamp(實部, 0, 255))。不取絕對值、不自動拉伸對比。裁切會失去過暗或過亮的細節；上方百分比是超出範圍的 RGB 通道樣本比例。相位來源的振幅恰為零時，相位約定為 0。</p>
-            <p class="validation" id="validation">正在執行 FFT → IFFT 數值檢查…</p>
-            <p class="validation" id="residual">虛部殘差將在重建後顯示。</p>
-          </div>
-        </details>
+      <section class="home-experiments" id="experiments" aria-labelledby="explore-title">
+        <h2 class="home-section-title" id="explore-title"><span>02 /</span> Explore the experiments</h2>
+        <p class="explore-question">What happens when we change the frequency components of an image?</p>
+        <nav class="experiment-links" aria-label="Choose an experiment">
+          <a href="./phase-swap.html"><span>001</span> Magnitude / Phase Swap <span aria-hidden="true">↗</span></a>
+          <a href="./spectrum.html"><span>002</span> Spectrum / Translation <span aria-hidden="true">↗</span></a>
+          <a href="./filtering.html"><span>003</span> Gaussian Filtering <span aria-hidden="true">↗</span></a>
+          <a href="./region-swap.html"><span>004</span> Partial Phase Region Swap <span aria-hidden="true">↗</span></a>
+        </nav>
+        <p class="home-doc-link">For practical steps and the mathematics behind the lab, read the <a href="./documentation.html">Documentation <span aria-hidden="true">→</span></a>.</p>
       </section>
     </main>
-    <footer><span>FOURIER IMAGE LAB <span class="footer-dot">·</span> An experiment in seeing.</span><span>EXPERIMENT 001 <span class="footer-dot">/</span> RGB FOURIER PHASE SWAP</span></footer>
+    <div data-site-footer></div>
   </div>
 </body>
 </html>

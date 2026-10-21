@@ -30,21 +30,23 @@ test('static hosting: HTTP status/MIME, shipped assets and repository-relative m
     const text = await readFile(new URL(relativePath, root), 'utf8');
     const moduleURL = new URL(relativePath, base);
     assert.ok(!/\b(?:require\(|process\.|node:)/.test(text), 'Browser modules must not require Node');
-    for (const match of text.matchAll(/(?:from\s*|new URL\(\s*)['"]([^'"]+)['"]/g)) {
-      const resolved = new URL(match[1], moduleURL);
-      assert.ok(resolved.href.startsWith(base), `Escapes repository: ${match[1]}`);
+    for (const match of text.matchAll(/from\s*['"]([^'"]+)['"]|new URL\(\s*['"]([^'"]+)['"],\s*import\.meta\.url/g)) {
+      const resolved = new URL(match[1] ?? match[2], moduleURL);
+      assert.ok(resolved.href.startsWith(base), `Escapes repository: ${match[1] ?? match[2]}`);
       const local = resolved.href.slice(base.length);
-      assert.ok((await stat(new URL(local, root))).isFile(), local);
+      const entry = await stat(new URL(local, root));
+      assert.ok(entry.isFile() || entry.isDirectory(), local);
       if (local.endsWith('.js')) await visit(local);
     }
   }
   await visit('js/app.js');
   assert.ok(visited.has('js/worker.js') && visited.has('js/fft.js') && visited.has('js/image.js'));
-  const html = await readFile(new URL('index.html', root), 'utf8');
+  const html = await readFile(new URL('phase-swap.html', root), 'utf8');
   for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
     const resolved = new URL(match[1], base);
+    if (resolved.origin !== new URL(base).origin) continue;
     assert.ok(resolved.href.startsWith(base));
-    assert.ok((await stat(new URL(resolved.href.slice(base.length), root))).isFile() || match[1] === './');
+    assert.ok((await stat(new URL(resolved.pathname.slice(new URL(base).pathname.length), root))).isFile() || match[1] === './');
   }
   t.diagnostic('Local HTTP and repository-relative URL resolution tested. No remote GitHub deployment performed.');
 });
