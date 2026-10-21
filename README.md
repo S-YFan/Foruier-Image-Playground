@@ -46,6 +46,10 @@ node scripts/build-locales.mjs
 node scripts/build-locales.mjs --check
 ```
 
+## Development Credits
+
+The original Python prototypes and Fourier-transform experiment concepts were developed by Sheng-Yang Fan. The frontend was implemented using OpenAI Codex.
+
 ## License
 
 This project is open source and licensed under the [MIT License](LICENSE).
