@@ -1,6 +1,6 @@
 import { t, language, pageURL, siteRoot } from './i18n.js';
 
-const developer = 'https://s-yfan.github.io/Personal-Website-for-ai-to-coding/';
+const developer = 'https://s-yfan.github.io/';
 const repository = 'https://github.com/S-YFan/Foruier-Image-Playground';
 const experiments = [
   ['phase-swap', '001', 'swapName'], ['spectrum', '002', 'spectrumName'],
