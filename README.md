@@ -52,6 +52,6 @@ The original Python prototypes and Fourier-transform experiment concepts were de
 
 ## License
 
-This project is open source and licensed under the [MIT License](LICENSE).
+This project, including its original source code and sample images, is released under the [MIT License](LICENSE).
 
-Original project code and images are covered; third-party components retain their own licenses, including [KaTeX](assets/katex/LICENSE).
+Third-party components retain their respective licenses, including [KaTeX](assets/katex/LICENSE).
