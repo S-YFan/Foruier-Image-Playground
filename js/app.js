@@ -4,7 +4,11 @@ import { prepareImage } from './image.js';
 import { SAMPLE_IMAGES, DEFAULT_SAMPLES } from './samples.js';
 
 const $ = id => document.getElementById(id);
-const inputs = ['A', 'B'].flatMap(slot => [$(`upload-${slot}`), $(`sample-${slot}`)]);
+// Experiments 001 and 002 share decoding, workers and the paired image UI.
+const channelExperiment = document.body.dataset.page === 'color-phase';
+const channelInputs = channelExperiment ? ['R', 'G', 'B'].map(channel => $(`swap-${channel}`)) : [];
+const phaseInputs = channelExperiment ? ['R', 'G', 'B'].map(channel => $(`phase-${channel}`)) : [];
+const inputs = [...['A', 'B'].flatMap(slot => [$(`upload-${slot}`), $(`sample-${slot}`)]), ...channelInputs, ...phaseInputs];
 const selected = { ...DEFAULT_SAMPLES };
 const ready = { A: false, B: false };
 const pending = new Map();
@@ -12,6 +16,40 @@ let worker;
 let nextId = 0;
 let busy = false;
 let workerFailed = false;
+let appliedSwapChannels = [true, true, true];
+let appliedPhaseChannels = [0, 1, 2];
+
+function restoreChannelSelection() {
+  channelInputs.forEach((input, channel) => { input.checked = appliedSwapChannels[channel]; });
+  phaseInputs.forEach((input, channel) => { input.value = String(appliedPhaseChannels[channel]); });
+}
+
+function describeResults(swapChannels, phaseChannels) {
+  const allSwapped = swapChannels.every(Boolean);
+  const sameColors = phaseChannels.every((source, channel) => source === channel);
+  const fullSwap = allSwapped && sameColors;
+  const noneSwapped = !swapChannels.some(Boolean);
+  for (const [name, own, other] of [['AB', 'A', 'B'], ['BA', 'B', 'A']]) {
+    const donors = swapChannels.map((swapChannel, channel) => channelExperiment
+      ? `${swapChannel ? other : own}.${'RGB'[swapChannel ? phaseChannels[channel] : channel]}`
+      : swapChannel ? other : own);
+    const sources = t('phaseChannelSources', { red: donors[0], green: donors[1], blue: donors[2] });
+    const label = $(`phase-label-${name}`);
+    label.textContent = fullSwap ? t('phaseFrom', { image: other }) : noneSwapped ? t('ownPhase') : t('selectedPhases');
+    label.classList.toggle('color-a', (fullSwap ? other : noneSwapped ? own : '') === 'A');
+    label.classList.toggle('color-b', (fullSwap ? other : noneSwapped ? own : '') === 'B');
+    $(`phase-caption-${name}`).textContent = !channelExperiment && fullSwap
+      ? t('fullPhaseCaption', { magnitude: own, phase: other })
+      : t('channelPhaseCaption', { magnitude: own, sources });
+    $(`result-${name}`).setAttribute('aria-label', !channelExperiment && fullSwap
+      ? t('fullPhaseAria', { magnitude: own, phase: other })
+      : t('channelPhaseAria', { magnitude: own, sources }));
+    const tag = $(`phase-tag-${name}`);
+    if (tag) tag.textContent = `${own} → ${other}`;
+  }
+  $('results').dataset.swapChannels = swapChannels.map(Number).join('');
+  $('results').dataset.phaseChannels = phaseChannels.join('');
+}
 
 function setStatus(message, error = false) {
   $('status').textContent = error ? errorMessage(message) : message;
@@ -22,6 +60,7 @@ function setBusy(value) {
   busy = value;
   document.body.classList.toggle('is-busy', value);
   inputs.forEach(input => { input.disabled = value || workerFailed; });
+  phaseInputs.forEach((input, channel) => { input.disabled ||= !channelInputs[channel].checked; });
   $('results').setAttribute('aria-busy', String(value));
 }
 
@@ -70,7 +109,8 @@ async function installImage(slot, prepared, filename, selection = 'upload') {
   for (const result of ['AB', 'BA']) {
     $(`result-${result}`).hidden = true;
     $(`empty-${result}`).hidden = false;
-    $(`stats-${result}`).textContent = t('waitingReconstruction');
+    const stats = $(`stats-${result}`);
+    if (stats) stats.textContent = t('waitingReconstruction');
   }
   $('timing').textContent = '2D IFFT';
   $('residual').textContent = t('residualWaiting');
@@ -81,23 +121,45 @@ async function swap() {
     setStatus(t('needSwapInputs'));
     return;
   }
-  setStatus(t('swapping'));
-  const { first, second, milliseconds } = await request('swap');
+  setStatus(t(channelExperiment ? 'channelSwapping' : 'swapping'));
+  const requestedChannels = channelExperiment ? channelInputs.map(input => input.checked) : [true, true, true];
+  const requestedPhaseChannels = channelExperiment ? phaseInputs.map(input => Number(input.value)) : [0, 1, 2];
+  const { first, second, milliseconds, swapChannels, phaseChannels } = await request('swap', {
+    swapChannels: requestedChannels, phaseChannels: requestedPhaseChannels,
+  });
   for (const [name, result] of [['AB', first], ['BA', second]]) {
     draw(`result-${name}`, result.rgba);
     $(`empty-${name}`).hidden = true;
-    $(`stats-${name}`).textContent = t('clipped', { percent: (result.stats.clippedFraction * 100).toFixed(1) });
-    $(`stats-${name}`).title = t('range', { min: result.stats.minimum.toFixed(2), max: result.stats.maximum.toFixed(2) });
+    const stats = $(`stats-${name}`);
+    if (stats) {
+      stats.textContent = t('clipped', { percent: (result.stats.clippedFraction * 100).toFixed(1) });
+      stats.title = t('range', { min: result.stats.minimum.toFixed(2), max: result.stats.maximum.toFixed(2) });
+    }
   }
+  appliedSwapChannels = [...swapChannels];
+  appliedPhaseChannels = [...phaseChannels];
+  restoreChannelSelection();
+  describeResults(appliedSwapChannels, appliedPhaseChannels);
   $('timing').textContent = `${Math.round(milliseconds)} ms · 2D IFFT`;
   const residual = Math.max(first.stats.maxImaginary, second.stats.maxImaginary);
   $('residual').textContent = t('residual', { value: residual.toExponential(2) });
   if (residual > 1e-7) {
     setStatus(t('highResidual'), true);
   } else {
-    setStatus(t('swapComplete'));
+    setStatus(t(channelExperiment ? 'channelSwapComplete' : 'swapComplete'));
   }
 }
+
+for (const input of [...channelInputs, ...phaseInputs]) input.addEventListener('change', async () => {
+  if (busy || workerFailed) { restoreChannelSelection(); return; }
+  setBusy(true);
+  try {
+    await swap();
+  } catch (error) {
+    restoreChannelSelection();
+    setStatus(error.message, true);
+  } finally { setBusy(false); }
+});
 
 async function upload(slot, file) {
   if (busy || workerFailed || !file) return;

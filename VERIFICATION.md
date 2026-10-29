@@ -1,6 +1,12 @@
 # Verification & Testing
 
-Phase 3 Finalization／品牌更新：2026-10-19（Asia/Taipei）。三頁統一為 **FOURIER IMAGE LAB**，主頁副標題為 **Interactive Experiments in Fourier Image Processing**。已核准的滑桿、兩區布局、運算 JS 與照片保持原樣。完整 **48/48 Node、20/20 Experiment 001、19/19 Experiment 002、15/15 Experiment 003 Chromium** 通過；包含三頁品牌、metadata、repository 子路徑、1040／390／320px 與六個導航方向。README 已整合最新遠端 main 的文件更新。發布經授權的 Commit／Push／PR／checks／Merge 流程進行，部署實測結果見 PR 與最終交付。詳細記錄見 [PHASE3A_REPORT.md](PHASE3A_REPORT.md)。下方各次「未 Commit／部署」為歷史狀態。
+編號對照更新（2026-10-29）：**Experiment 002 — Different Color, Different Phase** 使用 [color-phase.html](color-phase.html)；**Experiment 005 — Spectrum / Translation** 使用 [spectrum.html](spectrum.html)。其餘仍為 001 — Magnitude / Phase Swap、003 — Gaussian Filtering、004 — Partial Phase Region Swap。首頁、說明文件與共用導覽均按 001–005 排列；中英文標題、測試入口與斷言使用相同編號。
+
+本次重新編號後的本機驗證：**5/5 靜態／雙語測試、121/121 Edge Chromium 瀏覽器檢查、8/8 雙語版面檢查通過**。檢查涵蓋 110 項子路徑資源、14 個中英文頁面的標題與導覽編號、首頁及說明文件清單順序、語言切換與所有實驗操作。命令為 `node --test tests/localization.test.mjs tests/spectrum-static.test.mjs` 與本機 `.qa/color-phase-check.mjs`；瀏覽器結果保存在 `.qa/color-phase-final/report.json`。以上為提 PR 前的本機驗證紀錄；合併與發布狀態以 GitHub PR 為準。
+
+下方歷史報告中的 Experiment 編號已換成目前編號，測試次數與日期仍為當次實測；「Phase 2」保留開發階段的意義，對應現在的 Experiment 005。`.qa/` 內的舊截圖、JSON 與基線副本保留當時畫面，不能作為目前編號的依據。
+
+Phase 3 Finalization／品牌更新：2026-10-19（Asia/Taipei）。三頁統一為 **FOURIER IMAGE LAB**，主頁副標題為 **Interactive Experiments in Fourier Image Processing**。已核准的滑桿、兩區布局、運算 JS 與照片保持原樣。完整 **48/48 Node、20/20 Experiment 001、19/19 Experiment 005、15/15 Experiment 003 Chromium** 通過；包含三頁品牌、metadata、repository 子路徑、1040／390／320px 與六個導航方向。README 已整合最新遠端 main 的文件更新。發布經授權的 Commit／Push／PR／checks／Merge 流程進行，部署實測結果見 PR 與最終交付。詳細記錄見 [PHASE3A_REPORT.md](PHASE3A_REPORT.md)。下方各次「未 Commit／部署」為歷史狀態。
 
 Experiment 003 兩區獨立參數更新：2026-10-19（Asia/Taipei）。第一區為 Original / LPF / HPF 與 Sigma (σ₁)，第二區為 Original / Sharpening 與獨立 Sigma (σ₂)／Alpha。更換來源只解碼與分析一次，兩個 Original 同步；參數更新只計算對應區段。**48/48 Node、20/20 Phase 1 Chromium、19/19 Phase 2 Chromium、15/15 Experiment 003 Chromium** 通過，涵蓋數值與顯示獨立性、精確 IFFT 呼叫計數、快取、decode／重繪次數、快速輸入與獨立錯誤恢復、三頁導航與窄螢幕布局。詳見 [最新實作紀錄](PHASE3A_REPORT.md)。未 Commit、Push、PR、Merge 或部署。下方為先前介面的歷史紀錄。
 

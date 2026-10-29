@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101513">
+  <meta name="application-name" content="FOURIER IMAGE LAB">
+  <meta name="description" content="FOURIER IMAGE LAB: independently exchange RGB channel phases between two images and compare real Fourier reconstructions.">
+  <title>Experiment 002 — Different Color, Different Phase — FOURIER IMAGE LAB</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./site.css">
+  <script type="module" src="./js/site.js"></script>
+  <script type="module" src="./js/app.js"></script>
+</head>
+<body class="phase-swap-page color-phase-page" data-page="color-phase">
+  <div class="page-shell">
+    <div data-site-header></div>
+
+    <main id="main-content">
+      <section class="intro" aria-labelledby="page-title">
+        <div class="intro-copy">
+          <p class="eyebrow"><span>EXPERIMENT 002</span><span class="eyebrow-line"></span> COLOR CHANNELS · FOURIER PHASE</p>
+          <h1 id="page-title">Different Color,<br><span>Different Phase</span><span class="title-dot">.</span></h1>
+          <p class="subtitle" lang="en">Interactive Experiments in Fourier Image Processing</p>
+          <p class="intro-description">Control the phase of each RGB channel. Keep each image's magnitude and compare how the channels rebuild the scene.</p>
+        </div>
+        <div class="signal-art" aria-hidden="true">
+          <svg viewBox="0 0 220 160" fill="none">
+            <path class="signal-grid" d="M0 40H220M0 80H220M0 120H220M30 0V160M70 0V160M110 0V160M150 0V160M190 0V160"/>
+            <path class="signal-a" d="M0 80C18 80 18 24 37 24S55 136 74 136S92 24 111 24S129 136 148 136S166 24 185 24S203 80 220 80"/>
+            <path class="signal-b" d="M0 113C18 113 18 47 37 47S55 113 74 113S92 47 111 47S129 113 148 113S166 47 185 47S203 113 220 113"/>
+            <circle cx="111" cy="24" r="4" fill="currentColor"/>
+          </svg>
+          <span>|F| · e<sup>iφ</sup></span>
+        </div>
+      </section>
+
+      <section class="experiment" aria-label="Color channel phase experiment">
+        <div class="section-heading">
+          <h2><span class="section-number">01</span> Choose two images <span class="heading-en">INPUTS</span></h2>
+          <span class="technical-label">256 × 256 <span>·</span> RGB</span>
+        </div>
+        <div class="image-grid inputs">
+          <article class="image-card source-card" id="card-A">
+            <div class="card-heading">
+              <h3><span class="letter-badge color-a">A</span> Image A</h3>
+              <label class="upload-label" for="upload-A">Upload image <span aria-hidden="true">↗</span></label>
+              <input class="file-input" id="upload-A" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload Image A" aria-describedby="upload-policy">
+            </div>
+            <label class="image-surface source-surface" for="upload-A">
+              <canvas id="image-A" width="256" height="256" role="img" aria-label="Image A: cropped source image" hidden></canvas>
+              <span class="empty-state" id="empty-A"><span class="empty-symbol">＋</span>Choose or drop an image<span>PNG · JPEG · WebP</span></span>
+              <span class="image-hover" aria-hidden="true">Replace Image A ↗</span>
+              <span class="corner-tag">SOURCE A</span>
+            </label>
+            <div class="image-caption"><span id="filename-A">Waiting for image</span><span id="dimensions-A">—</span></div>
+            <div class="sample-picker"><label for="sample-A">Sample image A</label><select id="sample-A"><option value="sample-a.svg">Mountain lake</option><option value="sample-b.svg">Coastal lighthouse</option><option value="Monkey.jpg">Monkey.jpg</option><option value="Cat.jpg">Cat.jpg</option><option value="upload" disabled hidden>Uploaded image</option></select></div>
+          </article>
+          <article class="image-card source-card" id="card-B">
+            <div class="card-heading">
+              <h3><span class="letter-badge color-b">B</span> Image B</h3>
+              <label class="upload-label" for="upload-B">Upload image <span aria-hidden="true">↗</span></label>
+              <input class="file-input" id="upload-B" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload Image B" aria-describedby="upload-policy">
+            </div>
+            <label class="image-surface source-surface" for="upload-B">
+              <canvas id="image-B" width="256" height="256" role="img" aria-label="Image B: cropped source image" hidden></canvas>
+              <span class="empty-state" id="empty-B"><span class="empty-symbol">＋</span>Choose or drop an image<span>PNG · JPEG · WebP</span></span>
+              <span class="image-hover" aria-hidden="true">Replace Image B ↗</span>
+              <span class="corner-tag">SOURCE B</span>
+            </label>
+            <div class="image-caption"><span id="filename-B">Waiting for image</span><span id="dimensions-B">—</span></div>
+            <div class="sample-picker"><label for="sample-B">Sample image B</label><select id="sample-B"><option value="sample-a.svg">Mountain lake</option><option value="sample-b.svg" selected>Coastal lighthouse</option><option value="Monkey.jpg">Monkey.jpg</option><option value="Cat.jpg">Cat.jpg</option><option value="upload" disabled hidden>Uploaded image</option></select></div>
+          </article>
+        </div>
+        <p class="upload-policy" id="upload-policy">Center-crop to a square → resize to 256 × 256. RGB channels are retained; transparency is composited onto white. Maximum 25 MiB per image.</p>
+
+        <div class="status-line"><span id="status-dot" class="status-dot"></span><p id="status" role="status" aria-live="polite">Starting the experiment… If this persists, open the site through a local HTTP server.</p></div>
+        <noscript><p class="error-note">This experiment requires JavaScript. Images stay in your browser.</p></noscript>
+
+        <div class="section-heading results-heading">
+          <h2><span class="section-number">02</span> Compare the reconstructions <span class="heading-en">RECONSTRUCTIONS</span></h2>
+          <span class="technical-label" id="timing">2D IFFT</span>
+        </div>
+        <div class="mobile-source-controls" id="mobile-source-controls" aria-label="Change source images and automatically reconstruct" hidden>
+          <p>Change A or B to immediately update the reconstructions below.<span lang="en">Live reconstruction</span></p>
+          <div id="mobile-control-A" class="mobile-source-control"></div>
+          <div id="mobile-control-B" class="mobile-source-control"></div>
+        </div>
+        <fieldset class="channel-swap-controls" id="phase-swap-channels" aria-describedby="channel-swap-help">
+          <legend>Choose phase for each output color</legend>
+          <div class="channel-swap-options">
+            <div class="phase-channel-control">
+              <label class="channel-toggle"><input id="swap-R" type="checkbox" checked aria-label="Replace output R phase" aria-describedby="channel-swap-help"><span>R</span></label>
+              <label for="phase-R">Phase color</label>
+              <select id="phase-R" aria-label="Phase color for output R" aria-describedby="channel-swap-help"><option value="0" selected>R</option><option value="1">G</option><option value="2">B</option></select>
+            </div>
+            <div class="phase-channel-control">
+              <label class="channel-toggle"><input id="swap-G" type="checkbox" checked aria-label="Replace output G phase" aria-describedby="channel-swap-help"><span>G</span></label>
+              <label for="phase-G">Phase color</label>
+              <select id="phase-G" aria-label="Phase color for output G" aria-describedby="channel-swap-help"><option value="0">R</option><option value="1" selected>G</option><option value="2">B</option></select>
+            </div>
+            <div class="phase-channel-control">
+              <label class="channel-toggle"><input id="swap-B" type="checkbox" checked aria-label="Replace output B phase" aria-describedby="channel-swap-help"><span>B</span></label>
+              <label for="phase-B">Phase color</label>
+              <select id="phase-B" aria-label="Phase color for output B" aria-describedby="channel-swap-help"><option value="0">R</option><option value="1">G</option><option value="2" selected>B</option></select>
+            </div>
+          </div>
+          <p id="channel-swap-help">Checked: use the selected color's phase from the other image. Unchecked: keep your own same-color phase. Both results use these settings.</p>
+          <p>Example: output R with phase G uses A.R magnitude + B.G phase; the reverse uses B.R magnitude + A.G phase.</p>
+        </fieldset>
+        <div class="image-grid results" id="results" aria-busy="false" data-swap-channels="111">
+          <article class="image-card result-card">
+            <div class="card-heading result-title"><h3><span class="color-a">Magnitude A</span><span class="plus">+</span><span class="color-b" id="phase-label-AB">Phase B</span></h3><span class="result-index">01</span></div>
+            <div class="image-surface result-surface">
+              <canvas id="result-AB" width="256" height="256" role="img" aria-label="Reconstruction: Image A magnitude with Image B phase" hidden></canvas>
+              <span class="empty-state" id="empty-AB"><span class="empty-symbol">↔</span>Two images, a new perspective<span>Reconstructs automatically after images load</span></span>
+            </div>
+            <div class="result-caption"><p id="phase-caption-AB">A's frequency amplitudes, B's phase.</p></div>
+          </article>
+          <article class="image-card result-card">
+            <div class="card-heading result-title"><h3><span class="color-b">Magnitude B</span><span class="plus">+</span><span class="color-a" id="phase-label-BA">Phase A</span></h3><span class="result-index">02</span></div>
+            <div class="image-surface result-surface">
+              <canvas id="result-BA" width="256" height="256" role="img" aria-label="Reconstruction: Image B magnitude with Image A phase" hidden></canvas>
+              <span class="empty-state" id="empty-BA"><span class="empty-symbol">↔</span>Two images, a new perspective<span>Reconstructs automatically after images load</span></span>
+            </div>
+            <div class="result-caption"><p id="phase-caption-BA">B's frequency amplitudes, A's phase.</p></div>
+          </article>
+        </div>
+
+        <div class="experiment-note">
+          <span class="note-icon" aria-hidden="true">i</span>
+          <p><strong>Can you recognize the source images?</strong> Magnitude describes the amplitude of each spatial frequency; phase describes how the components align, often with a strong influence on structure and position. Compare the inputs and results.</p>
+        </div>
+        <details class="method-details">
+          <summary>Calculation and display <span aria-hidden="true">＋</span></summary>
+          <div class="method-content">
+            <p class="formula">I′_c = Re{ IFFT2( |FFT2(A_c)| · exp(i · φ_c) ) }</p>
+            <p>For each output color c, choose a donor color d. Checked uses B_d phase; unchecked uses A_c phase. The second result reverses A and B with the same settings. Magnitude always comes from the original output color; pixel colors are not rearranged.</p>
+            <p>R, G, and B are processed independently and recombined. The forward FFT is unscaled; the inverse divides by 256 in each dimension (65,536 in total). Calculations use native frequency order, without fftshift.</p>
+            <p>Display = round(clamp(real part, 0, 255)). No absolute value or automatic contrast stretching is used. Values outside the display range are clipped. Phase is stored as zero at exactly zero magnitude.</p>
+            <p class="validation" id="validation">Running the FFT → IFFT numerical check…</p>
+            <p class="validation" id="residual">Imaginary residuals will appear after reconstruction.</p>
+          </div>
+        </details>
+      </section>
+    </main>
+    <div data-site-footer></div>
+  </div>
+</body>
+</html>

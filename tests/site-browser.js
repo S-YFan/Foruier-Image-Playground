@@ -2,7 +2,7 @@ const assert = (condition, message = 'Assertion failed') => { if (!condition) th
 const results = [], metrics = { viewports: [], pages: [], localLinks: [], formulas: {}, switches: [], navigation: [] };
 const base = new URL('../', import.meta.url);
 const personalURL = 'https://s-yfan.github.io/';
-const experiments = [['phase-swap.html', '001'], ['spectrum.html', '002'], ['filtering.html', '003'], ['region-swap.html', '004']];
+const experiments = [['phase-swap.html', '001'], ['color-phase.html', '002'], ['filtering.html', '003'], ['region-swap.html', '004'], ['spectrum.html', '005']];
 const files = ['index.html', 'documentation.html', ...experiments.map(([file]) => file)];
 const frame = document.getElementById('app');
 async function waitFor(condition, label, timeout = 15000) {
@@ -42,12 +42,18 @@ for (const zh of [false, true]) {
     assert(doc.querySelector('.experiments-toggle').getAttribute('aria-expanded') === 'false', 'menu starts closed');
     assert(doc.querySelector('.experiment-menu').hidden, 'menu hidden');
     const links = [...doc.querySelectorAll('.experiment-menu a')];
-    assert(links.length === 4, 'four experiments');
-    for (const [target, number] of experiments) {
-      const link = links.find(link => link.href === pageURL(target, zh));
-      assert(link && link.textContent.includes(number), number);
+    assert(links.length === experiments.length, 'five experiments');
+    for (const [index, [target, number]] of experiments.entries()) {
+      const link = links[index];
+      assert(link.href === pageURL(target, zh) && link.querySelector('.nav-number').textContent === number, `ordered experiment ${number}`);
     }
-    if (experiments.some(([target]) => target === file)) assert(doc.querySelector('.experiment-menu [aria-current="page"]').href === pageURL(file, zh), 'current experiment');
+    const currentExperiment = experiments.find(([target]) => target === file);
+    if (currentExperiment) {
+      assert(doc.querySelector('.experiment-menu [aria-current="page"]').href === pageURL(file, zh), 'current experiment');
+      const number = currentExperiment[1];
+      assert(doc.title.includes(`${zh ? '實驗' : 'Experiment'} ${number}`), 'matching page title');
+      assert(doc.querySelector('.eyebrow > span').textContent === `${zh ? '實驗' : 'EXPERIMENT'} ${number}`, 'matching visible number');
+    }
     const about = nav.querySelector('a[target="_blank"]');
     const author = [...doc.querySelectorAll('footer a')].find(link => link.textContent.includes('Sheng-Yang Fan'));
     assert(about.href === personalURL && author.href === personalURL, 'verified author URL');
@@ -71,6 +77,11 @@ for (const zh of [false, true]) {
       assert(doc.querySelector('#introduction a').hostname === 'www.pearson.com', 'publisher source');
     }
     metrics.formulas[prefix + file] = formulas.length;
+    const experimentLinks = [...doc.querySelectorAll(file === 'index.html' ? '.experiment-links a' : '#experiments article a')];
+    assert(experimentLinks.length === experiments.length, 'complete experiment list');
+    for (const [index, [target, number]] of experiments.entries()) {
+      assert(experimentLinks[index].href === pageURL(target, zh) && experimentLinks[index].querySelector('span').textContent === number, `ordered page entry ${number}`);
+    }
     const seen = new Set();
     for (const link of doc.querySelectorAll('a[href]')) {
       const url = new URL(link.href);
@@ -104,7 +115,7 @@ for (const zh of [false, true]) {
   });
 
   await test(`直接實驗導覽與關閉選單：${zh ? '繁中' : 'EN'}`, async () => {
-    for (const [from, target] of [['index.html', 'region-swap.html'], ['phase-swap.html', 'filtering.html']]) {
+    for (const [from, target] of [['index.html', 'region-swap.html'], ['phase-swap.html', 'filtering.html'], ['index.html', 'color-phase.html'], ['color-phase.html', 'phase-swap.html']]) {
       let doc = await load(prefix + from);
       doc.querySelector('.experiments-toggle').click();
       doc = await follow([...doc.querySelectorAll('.experiment-menu a')].find(link => link.href === pageURL(target, zh)), pageURL(target, zh));
@@ -120,8 +131,8 @@ for (const zh of [false, true]) {
     const key = (element, key) => element.dispatchEvent(new win.KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }));
     toggle.focus(); key(toggle, 'ArrowDown'); assert(doc.activeElement === links[0], 'first link focused');
     key(links[0], 'ArrowDown'); assert(doc.activeElement === links[1], 'next link');
-    key(links[1], 'End'); assert(doc.activeElement === links[3], 'last link');
-    key(links[3], 'Home'); assert(doc.activeElement === links[0], 'first link');
+    key(links[1], 'End'); assert(doc.activeElement === links.at(-1), 'last link');
+    key(links.at(-1), 'Home'); assert(doc.activeElement === links[0], 'first link');
     key(links[0], 'Escape'); assert(doc.activeElement === toggle && doc.querySelector('.experiment-menu').hidden, 'escape returns focus');
     toggle.click(); doc.querySelector('main').click(); assert(doc.querySelector('.experiment-menu').hidden, 'outside click closes');
   });

@@ -5,7 +5,7 @@ import { build, pageFiles } from '../scripts/build-locales.mjs';
 import { messages } from '../js/i18n.js';
 
 test('Chinese static routes are complete and match the current English sources', async () => {
-  assert.equal(await build({ check: true }), 6);
+  assert.equal(await build({ check: true }), 7);
   assert.deepEqual((await readdir(new URL('../zh/', import.meta.url))).sort(), [...pageFiles].sort());
   for (const page of pageFiles) {
     const en = await readFile(new URL(`../${page}`, import.meta.url), 'utf8');

@@ -88,24 +88,24 @@
           <div id="mobile-control-A" class="mobile-source-control"></div>
           <div id="mobile-control-B" class="mobile-source-control"></div>
         </div>
-        <div class="image-grid results" id="results" aria-busy="false">
+        <div class="image-grid results" id="results" aria-busy="false" data-swap-channels="111">
           <article class="image-card result-card">
-            <div class="card-heading result-title"><h3><span class="color-a">振幅 A</span><span class="plus">+</span><span class="color-b">相位 B</span></h3><span class="result-index">01</span></div>
+            <div class="card-heading result-title"><h3><span class="color-a">振幅 A</span><span class="plus">+</span><span class="color-b" id="phase-label-AB">相位 B</span></h3><span class="result-index">01</span></div>
             <div class="image-surface result-surface">
               <canvas id="result-AB" width="256" height="256" role="img" aria-label="重建結果：影像 A 的振幅與影像 B 的相位" hidden></canvas>
               <span class="empty-state" id="empty-AB"><span class="empty-symbol">↔</span>兩張影像，一個新視角<span>載入影像後自動重建</span></span>
-              <span class="corner-tag">A → B</span>
+              <span class="corner-tag" id="phase-tag-AB">A → B</span>
             </div>
-            <div class="result-caption"><p>A 的頻率振幅，B 的相位。</p><span id="stats-AB">等待重建</span></div>
+            <div class="result-caption"><p id="phase-caption-AB">A 的頻率振幅，B 的相位。</p><span id="stats-AB">等待重建</span></div>
           </article>
           <article class="image-card result-card">
-            <div class="card-heading result-title"><h3><span class="color-b">振幅 B</span><span class="plus">+</span><span class="color-a">相位 A</span></h3><span class="result-index">02</span></div>
+            <div class="card-heading result-title"><h3><span class="color-b">振幅 B</span><span class="plus">+</span><span class="color-a" id="phase-label-BA">相位 A</span></h3><span class="result-index">02</span></div>
             <div class="image-surface result-surface">
               <canvas id="result-BA" width="256" height="256" role="img" aria-label="重建結果：影像 B 的振幅與影像 A 的相位" hidden></canvas>
               <span class="empty-state" id="empty-BA"><span class="empty-symbol">↔</span>兩張影像，一個新視角<span>載入影像後自動重建</span></span>
-              <span class="corner-tag">B → A</span>
+              <span class="corner-tag" id="phase-tag-BA">B → A</span>
             </div>
-            <div class="result-caption"><p>B 的頻率振幅，A 的相位。</p><span id="stats-BA">等待重建</span></div>
+            <div class="result-caption"><p id="phase-caption-BA">B 的頻率振幅，A 的相位。</p><span id="stats-BA">等待重建</span></div>
           </article>
         </div>
 

@@ -87,24 +87,24 @@
           <div id="mobile-control-A" class="mobile-source-control"></div>
           <div id="mobile-control-B" class="mobile-source-control"></div>
         </div>
-        <div class="image-grid results" id="results" aria-busy="false">
+        <div class="image-grid results" id="results" aria-busy="false" data-swap-channels="111">
           <article class="image-card result-card">
-            <div class="card-heading result-title"><h3><span class="color-a">Magnitude A</span><span class="plus">+</span><span class="color-b">Phase B</span></h3><span class="result-index">01</span></div>
+            <div class="card-heading result-title"><h3><span class="color-a">Magnitude A</span><span class="plus">+</span><span class="color-b" id="phase-label-AB">Phase B</span></h3><span class="result-index">01</span></div>
             <div class="image-surface result-surface">
               <canvas id="result-AB" width="256" height="256" role="img" aria-label="Reconstruction: Image A magnitude with Image B phase" hidden></canvas>
               <span class="empty-state" id="empty-AB"><span class="empty-symbol">↔</span>Two images, a new perspective<span>Reconstructs automatically after images load</span></span>
-              <span class="corner-tag">A → B</span>
+              <span class="corner-tag" id="phase-tag-AB">A → B</span>
             </div>
-            <div class="result-caption"><p>A's frequency amplitudes, B's phase.</p><span id="stats-AB">Waiting for reconstruction</span></div>
+            <div class="result-caption"><p id="phase-caption-AB">A's frequency amplitudes, B's phase.</p><span id="stats-AB">Waiting for reconstruction</span></div>
           </article>
           <article class="image-card result-card">
-            <div class="card-heading result-title"><h3><span class="color-b">Magnitude B</span><span class="plus">+</span><span class="color-a">Phase A</span></h3><span class="result-index">02</span></div>
+            <div class="card-heading result-title"><h3><span class="color-b">Magnitude B</span><span class="plus">+</span><span class="color-a" id="phase-label-BA">Phase A</span></h3><span class="result-index">02</span></div>
             <div class="image-surface result-surface">
               <canvas id="result-BA" width="256" height="256" role="img" aria-label="Reconstruction: Image B magnitude with Image A phase" hidden></canvas>
               <span class="empty-state" id="empty-BA"><span class="empty-symbol">↔</span>Two images, a new perspective<span>Reconstructs automatically after images load</span></span>
-              <span class="corner-tag">B → A</span>
+              <span class="corner-tag" id="phase-tag-BA">B → A</span>
             </div>
-            <div class="result-caption"><p>B's frequency amplitudes, A's phase.</p><span id="stats-BA">Waiting for reconstruction</span></div>
+            <div class="result-caption"><p id="phase-caption-BA">B's frequency amplitudes, A's phase.</p><span id="stats-BA">Waiting for reconstruction</span></div>
           </article>
         </div>
 

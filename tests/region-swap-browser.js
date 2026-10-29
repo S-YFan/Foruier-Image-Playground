@@ -176,7 +176,7 @@ await test('1280 / 1040 / 900 / 768 / 390 / 375 / 320px 無溢出，平板及手
     }
     doc.querySelector('.experiments-toggle').click();
   }
-  assert(doc.querySelectorAll('.experiment-menu a').length === 4);
+  assert(doc.querySelectorAll('.experiment-menu a').length === 5);
   const base = new URL('../', import.meta.url).href;
   assert(win.performance.getEntriesByType('resource').every(entry => entry.name.startsWith(base) || entry.name.startsWith('blob:')));
   frame.style.width = '1040px'; frame.style.height = '1200px'; win.scrollTo(0, 0); compareCurrent();

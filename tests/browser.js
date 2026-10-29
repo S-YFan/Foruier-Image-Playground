@@ -96,8 +96,9 @@ await test('真實 Web Worker：圖片解碼後的兩方向結果與直接核心
 });
 worker.terminate();
 
+const channelExperiment = document.body.dataset.experiment === 'color-phase';
 const frame = document.getElementById('app');
-frame.src = new URL('../phase-swap.html', import.meta.url).href;
+frame.src = new URL(channelExperiment ? '../color-phase.html' : '../phase-swap.html', import.meta.url).href;
 await waitFor(() => {
   const app = frame.contentDocument;
   return app?.getElementById('result-AB')?.hidden === false
@@ -153,7 +154,8 @@ await test('上傳 PNG／JPEG／WebP：同圖結果與畫面來源逐像素相�
     await upload('A', file); await upload('B', file);
     const expected = decoded[file].rgba;
     for (const id of ['image-A', 'image-B', 'result-AB', 'result-BA']) assert(maxDifference(canvasPixels(id), expected) === 0, `${file}/${id}`);
-    assert(get('stats-AB').textContent === 'Clipped 0.0%');
+    if (channelExperiment) assert(!get('stats-AB') && !get('stats-BA'), '002 omits clipping percentages');
+    else assert(get('stats-AB').textContent === 'Clipped 0.0%');
   }
 });
 await test('純黑／純白、拖放與重複上傳皆自動重建並保留預期亮度', async () => {
@@ -204,7 +206,7 @@ await test('Worker postMessage 拋錯後可重試；不破壞既有結果', asyn
   assertAutomaticReconstruction();
   assert(metrics.blobURLsCreated === metrics.blobURLsRevoked);
 });
-await test('001 響應式操作：375/390 控制與重建同屏，768/1280 保留桌面比較', async () => {
+await test(`${channelExperiment ? '002' : '001'} 響應式操作：375/390 控制與重建同屏，768/1280 保留桌面比較`, async () => {
   const originalStyle = frame.getAttribute('style');
   const originalNodes = Object.fromEntries(['A', 'B'].map(slot => [slot, {
     select: get(`sample-${slot}`),
@@ -264,6 +266,214 @@ await test('001 響應式操作：375/390 控制與重建同屏，768/1280 保�
     win.scrollTo(0, 0);
   }
 });
+if (channelExperiment) {
+const channelInputs = ['R', 'G', 'B'].map(channel => get(`swap-${channel}`));
+const maskKey = mask => mask.map(Number).join('');
+async function setChannelMask(mask) {
+  channelInputs.forEach((input, index) => { input.checked = mask[index]; });
+  channelInputs[0].dispatchEvent(new win.Event('change', { bubbles: true }));
+  await waitFor(() => !doc.body.classList.contains('is-busy'), 'channel phase reconstruction');
+}
+function expectedChannels(mask) {
+  const a = canvasPixels('image-A'), b = canvasPixels('image-B');
+  const sa = analyzeRGB(a, fft), sb = analyzeRGB(b, fft);
+  return [['AB', a, reconstructRGB(sa, sb, fft).rgba], ['BA', b, reconstructRGB(sb, sa, fft).rgba]].map(([id, own, swapped]) => {
+    const rgba = own.slice();
+    for (let i = 0; i < rgba.length; i += 4) {
+      for (let channel = 0; channel < 3; channel++) if (mask[channel]) rgba[i + channel] = swapped[i + channel];
+    }
+    return [id, rgba];
+  });
+}
+function assertChannelResults(mask, expected = expectedChannels(mask)) {
+  assert(get('results').dataset.swapChannels === maskKey(mask), 'applied mask metadata');
+  channelInputs.forEach((input, index) => assert(input.checked === mask[index] && !input.disabled, 'channel selection/availability'));
+  for (const [id, rgba] of expected) assert(maxDifference(canvasPixels(`result-${id}`), rgba) === 0, `per-channel pixels ${id}/${maskKey(mask)}`);
+}
+await test('RGB 獨立相位交換：八種組合逐像素正確，只重建、不解碼或重算頻譜', async () => {
+  assert(channelInputs.every(input => input?.type === 'checkbox' && input.checked), 'all channels default to swap');
+  const fieldset = get('phase-swap-channels');
+  assert(fieldset.tagName === 'FIELDSET' && fieldset.querySelector('legend'), 'channel controls have a group label');
+  assert(channelInputs.every(input => input.labels.length > 0), 'each checkbox has an accessible label');
+  const ownA = canvasPixels('image-A'), ownB = canvasPixels('image-B');
+  const sa = analyzeRGB(ownA, fft), sb = analyzeRGB(ownB, fft);
+  const full = [reconstructRGB(sa, sb, fft).rgba, reconstructRGB(sb, sa, fft).rgba];
+  const posted = [], originalPost = win.Worker.prototype.postMessage, originalDecode = win.HTMLImageElement.prototype.decode;
+  let decodeCount = 0;
+  win.Worker.prototype.postMessage = function (message, ...args) { posted.push(message.type); return originalPost.call(this, message, ...args); };
+  win.HTMLImageElement.prototype.decode = function (...args) { decodeCount++; return originalDecode.apply(this, args); };
+  try {
+    for (let bits = 0; bits < 8; bits++) {
+      const mask = [Boolean(bits & 4), Boolean(bits & 2), Boolean(bits & 1)];
+      const expected = [['AB', ownA, full[0]], ['BA', ownB, full[1]]].map(([id, own, swapped]) => {
+        const rgba = own.slice();
+        for (let i = 0; i < rgba.length; i += 4) for (let channel = 0; channel < 3; channel++) if (mask[channel]) rgba[i + channel] = swapped[i + channel];
+        return [id, rgba];
+      });
+      await setChannelMask(mask); assertChannelResults(mask, expected);
+      if (bits > 0 && bits < 7) for (const [id, base, donor] of [['AB', 'A', 'B'], ['BA', 'B', 'A']]) {
+        const aria = get(`result-${id}`).getAttribute('aria-label');
+        const caption = get(`phase-caption-${id}`).textContent;
+        ['R', 'G', 'B'].forEach((channel, index) => {
+          const source = `${channel}: ${mask[index] ? donor : base}.${channel}`;
+          assert(aria.includes(source) && caption.includes(source), `accurate phase source ${id}/${source}`);
+        });
+      }
+    }
+    assert(posted.length === 8 && posted.every(type => type === 'swap'), 'channel controls only request cached reconstructions');
+    assert(decodeCount === 0, 'channel controls must not decode images again');
+    metrics.channelCombinations = 8;
+  } finally {
+    win.Worker.prototype.postMessage = originalPost; win.HTMLImageElement.prototype.decode = originalDecode;
+    await setChannelMask([true, true, true]);
+  }
+});
+await test('RGB 通道選擇跨範例／上傳保留，失敗時還原選擇與標示並可重試', async () => {
+  const mask = [true, false, false];
+  await setChannelMask(mask);
+  get('sample-A').value = 'Cat.jpg'; get('sample-A').dispatchEvent(new win.Event('change', { bubbles: true }));
+  await waitFor(() => !doc.body.classList.contains('is-busy'), 'sample with channel selection');
+  assertChannelResults(mask);
+  await upload('B', 'rgb.webp'); assertChannelResults(mask);
+  const before = Object.fromEntries(['AB', 'BA'].map(id => [id, { pixels: canvasPixels(`result-${id}`), caption: get(`phase-caption-${id}`).textContent, aria: get(`result-${id}`).getAttribute('aria-label') }]));
+  const original = win.Worker.prototype.postMessage;
+  win.Worker.prototype.postMessage = function (message, ...args) {
+    if (message.type === 'swap') throw new Error('Injected channel swap failure');
+    return original.call(this, message, ...args);
+  };
+  try {
+    await setChannelMask([false, true, false]);
+    assert(get('status').textContent.includes('Injected channel swap failure'));
+    assertChannelResults(mask);
+    for (const [id, saved] of Object.entries(before)) {
+      assert(maxDifference(canvasPixels(`result-${id}`), saved.pixels) === 0, 'failed swap retains pixels');
+      assert(get(`phase-caption-${id}`).textContent === saved.caption && get(`result-${id}`).getAttribute('aria-label') === saved.aria, 'failed swap retains labels');
+    }
+  } finally { win.Worker.prototype.postMessage = original; }
+  await setChannelMask([false, true, false]); assertChannelResults([false, true, false]);
+  await setChannelMask([true, true, true]); assertAutomaticReconstruction();
+});
+await test('RGB 通道控制在 320／375／390／768／1280px 可操作且不溢出', async () => {
+  const originalStyle = frame.getAttribute('style');
+  try {
+    for (const width of [320, 375, 390, 768, 1280]) {
+      frame.style.cssText = `width:${width}px;height:812px;border:0;max-width:none`;
+      await waitFor(() => win.innerWidth === width, `channel viewport ${width}`);
+      await new Promise(resolve => win.requestAnimationFrame(() => win.requestAnimationFrame(resolve)));
+      assert(doc.documentElement.scrollWidth <= width + 1, `channel controls overflow ${width}`);
+      for (const input of channelInputs) {
+        const rect = input.labels[0].getBoundingClientRect();
+        assert(rect.width > 0 && rect.left >= 0 && rect.right <= width + 1, `channel target outside ${width}`);
+      }
+      channelInputs[0].click();
+      await waitFor(() => !doc.body.classList.contains('is-busy'), 'channel checkbox click');
+      assertChannelResults([false, true, true]);
+      channelInputs[0].click();
+      await waitFor(() => !doc.body.classList.contains('is-busy'), 'restore channel checkbox');
+      assertChannelResults([true, true, true]);
+    }
+  } finally {
+    if (originalStyle === null) frame.removeAttribute('style'); else frame.setAttribute('style', originalStyle);
+    win.scrollTo(0, 0);
+  }
+});
+const phaseInputs = ['R', 'G', 'B'].map(channel => get(`phase-${channel}`));
+async function setRouting(mapping, mask = [true, true, true]) {
+  phaseInputs.forEach((input, c) => { input.value = String(mapping[c]); });
+  channelInputs.forEach((input, c) => { input.checked = mask[c]; });
+  phaseInputs[0].dispatchEvent(new win.Event('change', { bubbles: true }));
+  await waitFor(() => !doc.body.classList.contains('is-busy'), 'color phase reconstruction');
+}
+function assertRouting(mapping, mask, expected = null) {
+  assert(get('results').dataset.phaseChannels === mapping.join(''), 'applied phase colors');
+  assert(get('results').dataset.swapChannels === maskKey(mask), 'applied swap flags');
+  phaseInputs.forEach((input, c) => {
+    assert(input.value === String(mapping[c]), 'remembered donor color');
+    assert(input.disabled === !mask[c], 'unchecked color selector disabled');
+    assert(input.labels.length > 0, 'phase selector has a label');
+  });
+  const sa = expected ? null : analyzeRGB(canvasPixels('image-A'), fft);
+  const sb = expected ? null : analyzeRGB(canvasPixels('image-B'), fft);
+  for (const [id, base, other, own, donor] of [['AB', sa, sb, 'A', 'B'], ['BA', sb, sa, 'B', 'A']]) {
+    const pixels = expected?.[id] ?? reconstructRGB(base, other, fft, mask, mapping).rgba;
+    assert(maxDifference(canvasPixels(`result-${id}`), pixels) === 0, `routing pixels ${id}/${mapping}/${mask}`);
+    const caption = get(`phase-caption-${id}`).textContent;
+    const aria = get(`result-${id}`).getAttribute('aria-label');
+    assert(!get(`phase-tag-${id}`), 'phase sources do not overlay the image');
+    assert(get(`phase-caption-${id}`).closest('.result-caption'), 'phase sources remain in the caption');
+    ['R', 'G', 'B'].forEach((color, c) => {
+      const source = `${color}: ${mask[c] ? donor : own}.${'RGB'[mask[c] ? mapping[c] : c]}`;
+      assert(caption.includes(source) && aria.includes(source), `actual donor ${source}`);
+    });
+  }
+}
+await test('跨色相位：27 種對應、重複來源與混合開關在兩方向逐像素正確，僅重建快取', async () => {
+  assert(phaseInputs.every((input, c) => input.value === String(c)), 'default mapping R←R / G←G / B←B');
+  const sa = analyzeRGB(canvasPixels('image-A'), fft), sb = analyzeRGB(canvasPixels('image-B'), fft);
+  // Build expectations from individual channel transforms, without reconstructRGB routing.
+  const channelResults = [sa, sb].map((base, direction) => [0, 1, 2].map(c => [0, 1, 2].map(d =>
+    reconstructChannel(base[c].magnitude, [sb, sa][direction][d].phase, fft).real)));
+  const originals = ['A', 'B'].map(slot => canvasPixels(`image-${slot}`));
+  const expectedFor = (mapping, mask) => Object.fromEntries(['AB', 'BA'].map((id, direction) => {
+    const pixels = originals[direction].slice();
+    for (let i = 0; i < 65536; i++) for (let c = 0; c < 3; c++) if (mask[c]) {
+      pixels[4 * i + c] = Math.round(Math.max(0, Math.min(255, channelResults[direction][c][mapping[c]][i])));
+    }
+    return [id, pixels];
+  }));
+  const originalPost = win.Worker.prototype.postMessage, originalDecode = win.HTMLImageElement.prototype.decode;
+  const posted = []; let decodes = 0;
+  win.Worker.prototype.postMessage = function (message, ...args) { posted.push(message.type); return originalPost.call(this, message, ...args); };
+  win.HTMLImageElement.prototype.decode = function (...args) { decodes++; return originalDecode.apply(this, args); };
+  try {
+    for (let code = 0; code < 27; code++) {
+      const mapping = [Math.floor(code / 9), Math.floor(code / 3) % 3, code % 3], mask = [true, true, true];
+      await setRouting(mapping, mask); assertRouting(mapping, mask, expectedFor(mapping, mask));
+    }
+    for (let bits = 0; bits < 8; bits++) {
+      const mapping = [1, 2, 0], mask = [0, 1, 2].map(c => Boolean(bits & (1 << c)));
+      await setRouting(mapping, mask); assertRouting(mapping, mask, expectedFor(mapping, mask));
+    }
+    assert(posted.length === 35 && posted.every(type => type === 'swap') && decodes === 0, 'routing reuses image spectra');
+    metrics.colorMappings = 27; metrics.crossColorMasks = 8;
+  } finally {
+    win.Worker.prototype.postMessage = originalPost; win.HTMLImageElement.prototype.decode = originalDecode;
+    await setRouting([0, 1, 2]);
+  }
+});
+await test('跨色選擇跨上傳／範例保留；計算失敗還原選單、標示及像素並可重試', async () => {
+  const mapping = [2, 2, 0], mask = [true, false, true];
+  await setRouting(mapping, mask); await upload('B', 'rgb.png'); assertRouting(mapping, mask);
+  get('sample-A').value = 'Monkey.jpg'; get('sample-A').dispatchEvent(new win.Event('change', { bubbles: true }));
+  await waitFor(() => !doc.body.classList.contains('is-busy'), 'sample preserves cross-color settings');
+  assertRouting(mapping, mask);
+  const saved = Object.fromEntries(['AB', 'BA'].map(id => [id, canvasPixels(`result-${id}`)]));
+  const originalPost = win.Worker.prototype.postMessage;
+  try {
+    for (const failure of ['postMessage', 'worker validation']) {
+      win.Worker.prototype.postMessage = function (message, ...args) {
+        if (message.type === 'swap') {
+          if (failure === 'postMessage') throw new Error('Injected routing failure');
+          message.phaseChannels = [9, 0, 0];
+        }
+        return originalPost.call(this, message, ...args);
+      };
+      await setRouting([1, 0, 1], [false, true, true]);
+      assert(get('status').parentElement.classList.contains('is-error'), failure);
+      assertRouting(mapping, mask, saved);
+      channelInputs.forEach((input, c) => assert(input.checked === mask[c] && !input.disabled, 'failed routing restores flags'));
+    }
+  } finally { win.Worker.prototype.postMessage = originalPost; }
+  await setRouting([1, 0, 1]); assertRouting([1, 0, 1], [true, true, true]);
+  await setRouting([0, 1, 2]); assertAutomaticReconstruction();
+});
+} else {
+  await test('Experiment 001 保留完整交換定位，通道控制位於 Experiment 002', () => {
+    assert(!get('phase-swap-channels') && !get('swap-R'));
+    assert(doc.querySelector('.experiment-menu a[href$="/color-phase.html"]'));
+    assertAutomaticReconstruction();
+  });
+}
 win.URL.createObjectURL = createURL; win.URL.revokeObjectURL = revokeURL;
 
 const passed = results.filter(result => result.passed).length;

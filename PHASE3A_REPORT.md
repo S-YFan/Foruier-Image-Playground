@@ -1,14 +1,16 @@
 # Phase 3A — Gaussian Frequency Filtering
 
+編號對照更新（2026-10-29）：本文的 Experiment 編號已對齊目前網站：**002 — Different Color, Different Phase**、**005 — Spectrum / Translation**；完整清單見 [README](README.md#architecture--implementation)。Phase 1／Phase 2／Phase 3A 是歷史開發階段，原始日期與測試數據保留。
+
 日期：2026-10-19（Asia/Taipei）。狀態：**Phase 3 與 FOURIER IMAGE LAB 品牌更新已完成實作與驗證；發布狀態以 Pull Request 與 GitHub Pages 驗證紀錄為準**。
 
 ## Phase 3 發布與 FOURIER IMAGE LAB（2026-10-19）
 
 - 三頁 header、footer、瀏覽器 title、application-name 與 description metadata 統一使用 **FOURIER IMAGE LAB**；主頁 heading 使用新品牌及副標題 **Interactive Experiments in Fourier Image Processing**。
-- Experiment 名稱與導航為 **001 — RGB Fourier Phase Swap**、**002 — Spectrum Lab**、**003 — Gaussian Filtering**。Repository、GitHub Pages URL、檔名與路由不變。
+- 本節涉及的實驗依目前編號為 **001 — RGB Fourier Phase Swap**、**003 — Gaussian Filtering**、**005 — Spectrum Lab**。Repository、GitHub Pages URL、檔名與路由不變。
 - 保留最新核准的 Section 01 Original / LPF / HPF、Section 02 Original / Sharpening，以及三個滑桿的 markup、樣式與位置。品牌更新期間未更動任何運算 JS、`filtering.css`、Monkey 或 Cat 照片，並以 SHA-256 比對確認。
 - README 以遠端 main 的最新文件整理為基礎，整合 Phase 3 實驗、三頁連結、照片、測試入口與新品牌；保留原有 Phase 1／Phase 2 內容。package description 與測試入口標題同步更新。
-- 完整驗證 **48/48 Node、20/20 Experiment 001 Chromium、19/19 Experiment 002 Chromium、15/15 Experiment 003 Chromium** 通過。涵蓋 1040／390／320px、六個方向實際導航、三頁品牌 metadata、兩區參數獨立性與共用來源。
+- 完整驗證 **48/48 Node、20/20 Experiment 001 Chromium、19/19 Experiment 005 Chromium、15/15 Experiment 003 Chromium** 通過。涵蓋 1040／390／320px、六個方向實際導航、三頁品牌 metadata、兩區參數獨立性與共用來源。
 - 發布流程依擁有者授權，經 final diff 審查、Commit、Push、以 main 為目標的 PR、GitHub checks 後合併；正式站部署與驗證結果以 PR／最終交付紀錄為準。沒有新增後續實驗。
 
 以下保留歷次實作與介面調整的歷史紀錄，其「未 Commit／部署」描述為當時狀態。
@@ -35,7 +37,7 @@
 
 本節為 Phase 3A 完成後的介面微調；下方保留最初實作紀錄。
 
-- 公開名稱統一為 **EXPERIMENT 003 — Gaussian Filtering**，移除介面的 `003A`、`PHASE 3A`。三頁的瀏覽器標題、導航與頁尾使用一致的 Experiment 001／002／003 編號；Spectrum Lab 補上直接前往 Gaussian Filtering 的連結。
+- 公開名稱統一為 **EXPERIMENT 003 — Gaussian Filtering**，移除介面的 `003A`、`PHASE 3A`。三頁的瀏覽器標題、導航與頁尾使用一致的 Experiment 編號（目前為 001／003／005）；Spectrum Lab 補上直接前往 Gaussian Filtering 的連結。
 - 控制項改為有 legend 的兩組 fieldset：**Gaussian Frequency Width — Sigma (σ)** 明示適用於 LPF、HPF、Sharpening；**Sharpening Only — Strength (α)** 明示 LPF、HPF 不受影響。Strength 與 Sharpening 標題共用既有暖色，Canvas 也連結到該控制項說明。範圍與預設值不變。
 - 共用導航保留深色風格與折行；窄螢幕隱藏裝飾性分隔線，避免換行時出現獨立斜線。
 - 修改 `index.html`、`spectrum.html`、`filtering.html`、`styles.css`、`filtering.css`；擴充 `tests/spectrum-static.test.mjs`、`tests/spectrum-browser.js`、`tests/filtering-browser.js`，同步 README 與驗證紀錄。沒有更動任何 `js/` 模組或照片。
@@ -149,4 +151,5 @@ node scripts/serve.mjs
 - FFT 仍採既有的 256²、週期邊界與 sRGB 0–255 數值。照片兩邊不連續可能產生邊緣響應；顯示 clamp 可能裁掉 HPF 極值與 Sharpening 過衝。
 - 未驗證 Firefox、Safari、實體手機、特殊 ICC／EXIF、螢幕閱讀器與長時間記憶體使用。手機寬度測試是在 Chromium iframe 內進行。
 - 未使用 OS 檔案選擇器；上傳測試使用真實 File / DataTransfer / DOM 事件。未執行正式 GitHub Pages 的遠端驗證。
-- 未實作 Ideal LPF / HPF、Phase Interpolation、Phase Region Swap 或其他後續階段。
+- 本報告記錄的是 Phase 3A 當時的實作範圍；Ideal LPF / HPF 與 Phase Interpolation 目前仍未實作。
+- Phase Region Swap 已於後續完成為 **Experiment 004 — Partial Phase Region Swap**，見[實驗頁](region-swap.html)與[說明文件](documentation.html#experiments)。

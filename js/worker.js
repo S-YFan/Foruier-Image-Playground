@@ -5,7 +5,7 @@ const fft = new FFT(IMAGE_SIZE);
 const cache = { A: null, B: null };
 
 self.onmessage = ({ data }) => {
-  const { id, type, slot, rgba } = data;
+  const { id, type, slot, rgba, swapChannels = [true, true, true], phaseChannels = [0, 1, 2] } = data;
   try {
     if (type === 'check') {
       self.postMessage({ id, result: checkRoundTrip() });
@@ -16,9 +16,9 @@ self.onmessage = ({ data }) => {
     } else if (type === 'swap') {
       if (!cache.A || !cache.B) throw new Error('Please load both images first.');
       const start = performance.now();
-      const first = reconstructRGB(cache.A, cache.B, fft);
-      const second = reconstructRGB(cache.B, cache.A, fft);
-      self.postMessage({ id, result: { first, second, milliseconds: performance.now() - start } },
+      const first = reconstructRGB(cache.A, cache.B, fft, swapChannels, phaseChannels);
+      const second = reconstructRGB(cache.B, cache.A, fft, swapChannels, phaseChannels);
+      self.postMessage({ id, result: { first, second, swapChannels: [...swapChannels], phaseChannels: [...phaseChannels], milliseconds: performance.now() - start } },
         [first.rgba.buffer, second.rgba.buffer]);
     } else {
       throw new Error('Unknown worker request.');
