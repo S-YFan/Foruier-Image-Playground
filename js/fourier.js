@@ -48,7 +48,15 @@ export function reconstructChannel(magnitude, phase, fft) {
   return { real, imag };
 }
 
-export function reconstructRGB(magnitudeSource, phaseSource, fft) {
+export function reconstructRGB(magnitudeSource, phaseSource, fft, swapChannels = [true, true, true], phaseChannels = [0, 1, 2]) {
+  if (!Array.isArray(swapChannels) || swapChannels.length !== 3 ||
+      [0, 1, 2].some(channel => typeof swapChannels[channel] !== 'boolean')) {
+    throw new RangeError('Swap channels must be an array of three booleans (R, G, B).');
+  }
+  if (!Array.isArray(phaseChannels) || phaseChannels.length !== 3 ||
+      [0, 1, 2].some(channel => !Number.isInteger(phaseChannels[channel]) || phaseChannels[channel] < 0 || phaseChannels[channel] > 2)) {
+    throw new RangeError('Phase channels must be an array of three integers from 0 to 2 (R, G, B).');
+  }
   const count = fft.size ** 2;
   const rgba = new Uint8ClampedArray(count * 4);
   let minimum = Infinity;
@@ -57,7 +65,9 @@ export function reconstructRGB(magnitudeSource, phaseSource, fft) {
   let clipped = 0;
   for (let channel = 0; channel < 3; channel++) {
     const { real, imag } = reconstructChannel(
-      magnitudeSource[channel].magnitude, phaseSource[channel].phase, fft,
+      magnitudeSource[channel].magnitude,
+      // Only phase can cross colors. Magnitude and output RGB positions stay fixed.
+      swapChannels[channel] ? phaseSource[phaseChannels[channel]].phase : magnitudeSource[channel].phase, fft,
     );
     for (let i = 0; i < count; i++) {
       const value = real[i];

@@ -7,13 +7,14 @@ import { fileURLToPath } from 'node:url';
 const pages = [
   ['index.html', 'home', 'FOURIER IMAGE LAB'],
   ['phase-swap.html', 'phase-swap', 'Experiment 001 — RGB Fourier Phase Swap — FOURIER IMAGE LAB'],
-  ['spectrum.html', 'spectrum', 'Experiment 002 — Spectrum Lab — FOURIER IMAGE LAB'],
+  ['color-phase.html', 'color-phase', 'Experiment 002 — Different Color, Different Phase — FOURIER IMAGE LAB'],
   ['filtering.html', 'filtering', 'Experiment 003 — Gaussian Filtering — FOURIER IMAGE LAB'],
   ['region-swap.html', 'region-swap', 'Experiment 004 — Partial Phase Region Swap — FOURIER IMAGE LAB'],
+  ['spectrum.html', 'spectrum', 'Experiment 005 — Spectrum Lab — FOURIER IMAGE LAB'],
   ['documentation.html', 'documentation', 'Documentation'],
 ];
 
-test('Home, documentation and all four experiments load with their resource graphs under the GitHub Pages subpath', { timeout: 15000 }, async t => {
+test('Home, documentation and all five experiments load with their resource graphs under the GitHub Pages subpath', { timeout: 15000 }, async t => {
   const root = new URL('../', import.meta.url);
   const basePath = '/Foruier-Image-Playground/';
   const server = spawn(process.execPath, ['scripts/serve.mjs'], {

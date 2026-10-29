@@ -3,7 +3,7 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-export const pageFiles = ['index.html', 'documentation.html', 'phase-swap.html', 'spectrum.html', 'filtering.html', 'region-swap.html'];
+export const pageFiles = ['index.html', 'documentation.html', 'phase-swap.html', 'color-phase.html', 'filtering.html', 'region-swap.html', 'spectrum.html'];
 const root = new URL('../', import.meta.url);
 const normalize = text => text.trim().replace(/\s+/g, ' ');
 export function transformHTML(html, translate, chinese = false) {

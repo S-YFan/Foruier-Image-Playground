@@ -94,6 +94,19 @@ summary:focus-visible, a:focus-visible { outline: 2px solid var(--green); outlin
 .is-busy .source-surface, .is-busy .upload-label { cursor: progress; }
 .results { transition: opacity .2s; }
 .results[aria-busy="true"] { opacity: .45; }
+.channel-swap-controls { min-width: 0; margin: 0 0 16px; padding: 8px 14px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.channel-swap-controls legend { padding: 0 5px; color: #c9d7cc; font-size: 11px; }
+.channel-swap-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.channel-swap-options .channel-toggle { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 0 10px; border: 1px solid #465348; border-radius: 5px; color: var(--text); font: 12px var(--mono); cursor: pointer; }
+.phase-channel-control { min-width: 0; }
+.phase-channel-control > label[for] { display: block; margin: 7px 0 4px; color: var(--muted); font-size: 10px; }
+.phase-channel-control select { width: 100%; min-height: 36px; border: 1px solid #465348; border-radius: 5px; padding: 5px 8px; background: var(--panel); color: var(--text); font: 12px var(--mono); }
+.phase-channel-control select:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.phase-channel-control select:disabled { opacity: .5; }
+.channel-swap-options input { width: 15px; height: 15px; margin: 0; accent-color: var(--green); cursor: pointer; }
+.channel-swap-options label:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 3px; }
+.channel-swap-options label:has(input:disabled) { opacity: .5; cursor: progress; }
+.channel-swap-controls p { margin: 7px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; }
 .result-title { padding-top: 19px; padding-bottom: 18px; }
 .result-title h3 { font-size: 12px; gap: 9px; }
 .plus { color: #8e9c91; font-weight: 300; }

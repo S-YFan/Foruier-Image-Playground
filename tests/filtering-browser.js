@@ -311,13 +311,14 @@ win.URL.createObjectURL = createURL; win.URL.revokeObjectURL = revokeURL;
 win.HTMLImageElement.prototype.decode = decode;
 win.Worker.prototype.postMessage = postMessage;
 win.CanvasRenderingContext2D.prototype.putImageData = putImageData;
-await test('既有 Experiment 實際導航、四頁公開命名與窄螢幕連結', async () => {
+await test('既有 Experiment 實際導航、五頁公開命名與窄螢幕連結', async () => {
   const base = new URL('../', import.meta.url);
   const experiments = [
     ['phase-swap.html', '001', 'RGB Fourier Phase Swap', 'Magnitude / Phase Swap'],
-    ['spectrum.html', '002', 'Spectrum Lab', 'Spectrum / Translation'],
+    ['color-phase.html', '002', 'Different Color, Different Phase', 'Different Color, Different Phase'],
     ['filtering.html', '003', 'Gaussian Filtering', 'Gaussian Filtering'],
     ['region-swap.html', '004', 'Partial Phase Region Swap', 'Partial Phase Region Swap'],
+    ['spectrum.html', '005', 'Spectrum Lab', 'Spectrum / Translation'],
   ];
   const inspected = new Set();
   metrics.navigation = [];
@@ -332,7 +333,7 @@ await test('既有 Experiment 實際導航、四頁公開命名與窄螢幕連�
     assert(current.querySelector('.eyebrow > span').textContent === `EXPERIMENT ${number}`);
     assert(!/EXPERIMENT 003A|PHASE 3A|Phase 3A/.test(current.body.textContent));
     const links = Array.from(current.querySelectorAll('.experiment-menu a'));
-    assert(links.length === 4);
+    assert(links.length === experiments.length);
     for (const [i, [file, id, , label]] of experiments.entries()) {
       assert(links[i].href === new URL(file, base).href);
       assert(links[i].textContent.replace('↗', '').trim() === `${id} ${label}`);

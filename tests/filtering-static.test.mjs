@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 test('all four website samples are retained and offered by the image experiments', async () => {
-  for (const file of ['js/app.js', 'js/filtering-app.js', 'js/region-swap-app.js', 'phase-swap.html', 'filtering.html', 'region-swap.html']) {
+  for (const file of ['js/app.js', 'js/filtering-app.js', 'js/region-swap-app.js', 'phase-swap.html', 'color-phase.html', 'filtering.html', 'region-swap.html']) {
     const source = await readFile(new URL(`../${file}`, import.meta.url), 'utf8');
     assert.ok(!/NSYSUlogo|校徽/.test(source), `outdated example in ${file}`);
   }
@@ -18,7 +18,7 @@ test('all four website samples are retained and offered by the image experiments
     assert.equal(bytes.readUInt16BE(), 0xffd8, `${name} must remain an actual JPEG`);
     assert.ok(bytes.length > 1000);
   }
-  for (const file of ['js/samples.js', 'phase-swap.html', 'filtering.html', 'region-swap.html', 'README.md']) {
+  for (const file of ['js/samples.js', 'phase-swap.html', 'color-phase.html', 'filtering.html', 'region-swap.html', 'README.md']) {
     const source = await readFile(new URL(`../${file}`, import.meta.url), 'utf8');
     for (const name of ['sample-a.svg', 'sample-b.svg', 'Monkey.jpg', 'Cat.jpg']) {
       assert.ok(source.includes(name), `${name} missing from ${file}`);

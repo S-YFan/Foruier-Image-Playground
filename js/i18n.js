@@ -2,7 +2,7 @@
 export const language = typeof document !== 'undefined' && document.documentElement.lang === 'zh-TW' ? 'zh-TW' : 'en';
 export const isChinese = language === 'zh-TW';
 export const siteRoot = new URL('../', import.meta.url);
-export const pages = { home: 'index.html', documentation: 'documentation.html', 'phase-swap': 'phase-swap.html', spectrum: 'spectrum.html', filtering: 'filtering.html', 'region-swap': 'region-swap.html' };
+export const pages = { home: 'index.html', documentation: 'documentation.html', 'phase-swap': 'phase-swap.html', 'color-phase': 'color-phase.html', filtering: 'filtering.html', 'region-swap': 'region-swap.html', spectrum: 'spectrum.html' };
 export function pageURL(page, lang = language) {
   const file = pages[page] ?? pages.home;
   return new URL(`${lang === 'zh-TW' ? 'zh/' : ''}${page === 'home' ? '' : file}`, siteRoot).href;
@@ -10,6 +10,7 @@ export function pageURL(page, lang = language) {
 export const messages = {
   home: ['Home', '首頁'], experiments: ['Experiments', '實驗'], documentation: ['Documentation', '說明文件'], about: ['About', '關於作者'],
   swapName: ['Magnitude / Phase Swap', '振幅／相位交換'], spectrumName: ['Spectrum / Translation', '頻譜／平移'], filteringName: ['Gaussian Filtering', '高斯濾波'], regionName: ['Partial Phase Region Swap', '局部相位區域交換'],
+  colorPhaseName: ['Different Color, Different Phase', '色彩通道相位交換'],
   skip: ['Skip to content', '跳至主要內容'], brandHome: ['FOURIER IMAGE LAB home', 'FOURIER IMAGE LAB 首頁'], inBrowser: ['IN YOUR BROWSER', '在瀏覽器內運算'], mainNav: ['Main navigation', '主要導覽'], footer: ['Footer', '頁尾'], language: ['Language', '語言'], newTab: ['opens in a new tab', '另開分頁'], github: ['GitHub Repository', 'GitHub 專案'], license: ['MIT License', 'MIT 授權'],
   creditBefore: ['This website is developed by ', '本網站由 '], creditAfter: ['.', ' 開發。'], typeset: ['Typeset with KaTeX', '公式排版：KaTeX'], katexLicense: ['KaTeX license', 'KaTeX 授權'],
   mountain: ['Mountain lake', '山景湖泊'], lighthouse: ['Coastal lighthouse', '海岸燈塔'],
@@ -25,10 +26,18 @@ export const messages = {
   waitingReconstruction: ['Waiting for reconstruction', '等待重建'], residualWaiting: ['Imaginary residuals will appear after reconstruction.', '虛部殘差將在重建後顯示。'],
   needSwapInputs: ['Load Image A and Image B; swapping starts automatically when both are ready.', '請載入影像 A 與影像 B，兩張皆就緒後會自動交換。'],
   swapping: ['Swapping phase across three color channels and running IFFT…', '正在交換三個色彩通道的相位並執行 IFFT…'],
+  channelSwapping: ['Selecting phase for each color channel and running IFFT…', '正在選取各色彩通道的相位並執行 IFFT…'],
+  phaseFrom: ['Phase {image}', '相位 {image}'], ownPhase: ['Own phase', '自身相位'], selectedPhases: ['Selected phases', '所選相位'],
+  phaseChannelSources: ['R: {red} · G: {green} · B: {blue}', 'R：{red} · G：{green} · B：{blue}'],
+  fullPhaseCaption: ["{magnitude}'s frequency amplitudes, {phase}'s phase.", '{magnitude} 的頻率振幅，{phase} 的相位。'],
+  channelPhaseCaption: ["{magnitude}'s frequency amplitudes; phase sources — {sources}.", '{magnitude} 的頻率振幅；各通道相位來源 — {sources}。'],
+  fullPhaseAria: ['Reconstruction: Image {magnitude} magnitude with Image {phase} phase', '重建結果：影像 {magnitude} 的振幅與影像 {phase} 的相位'],
+  channelPhaseAria: ['Reconstruction: Image {magnitude} magnitude; phase source image and color by output channel: {sources}', '重建：影像 {magnitude} 振幅；各輸出通道的相位來源影像與色彩：{sources}'],
   clipped: ['Clipped {percent}%', '裁切 {percent}%'], range: ['Before clipping: {min} to {max}', '裁切前範圍：{min} 至 {max}'],
   residual: ['Maximum imaginary residual: {value} (original 0–255 pixel scale).', '本次最大虛部殘差：{value}（原始 0–255 像素尺度）。'],
   highResidual: ['Reconstruction complete, but the imaginary residual is high. See calculation notes.', '重建完成，但虛部殘差偏高，請查看計算說明。'],
   swapComplete: ['Swap complete. Changing either image automatically recalculates the results.', '交換完成。更換任一影像會自動重新計算。'],
+  channelSwapComplete: ['Swap complete. Changing either image or channel selection automatically recalculates the results.', '交換完成。更換任一影像或通道選擇會自動重新計算。'],
   loadingSlot: ['Loading Image {slot} and computing RGB spectra…', '正在載入影像 {slot} 並計算 RGB 頻譜…'],
   loadingName: ['Loading {name} and computing RGB spectra…', '正在載入 {name} 並計算 RGB 頻譜…'],
   check: ['FFT → IFFT self-check {result}: max real error {real}; max imaginary residual {imag}.', 'FFT → IFFT 自我檢查{result}：最大實部誤差 {real}；最大虛部殘差 {imag}。'],

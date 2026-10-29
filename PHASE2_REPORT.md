@@ -1,5 +1,7 @@
 # Phase 2 — Fourier Spectrum & Geometric Experiments
 
+編號對照更新（2026-10-29）：本報告的 Spectrum / Translation 現為 **Experiment 005**，見 [spectrum.html](spectrum.html)。**Experiment 002** 現為 [Different Color, Different Phase](color-phase.html)。本文的「Phase 2」是歷史開發階段，原始日期、測試數據與紀錄檔名仍依當時記錄保留。
+
 ## Final Release Review（2026-10-17）
 
 **結論：未發現 Release Blocker。** 依使用者授權將完整 Phase 2 提交至 `feature/fourier-spectrum`，並以 `main` 為目標建立 Pull Request。Merge 與正式部署仍由使用者最後確認；本次維持既有視覺設計及互動功能。

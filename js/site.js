@@ -3,8 +3,9 @@ import { t, language, pageURL, siteRoot } from './i18n.js';
 const developer = 'https://s-yfan.github.io/';
 const repository = 'https://github.com/S-YFan/Foruier-Image-Playground';
 const experiments = [
-  ['phase-swap', '001', 'swapName'], ['spectrum', '002', 'spectrumName'],
+  ['phase-swap', '001', 'swapName'], ['color-phase', '002', 'colorPhaseName'],
   ['filtering', '003', 'filteringName'], ['region-swap', '004', 'regionName'],
+  ['spectrum', '005', 'spectrumName'],
 ];
 const current = document.body.dataset.page;
 const isExperiment = experiments.some(([key]) => key === current);
