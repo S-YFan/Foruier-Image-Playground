@@ -6,7 +6,7 @@ FOURIER IMAGE LAB is a browser-based interactive Fourier image lab, available in
 
 ## Architecture & Implementation
 
-The site uses HTML, CSS, and native JavaScript modules. `index.html` is Home. The four experiment pages (`phase-swap.html`, `spectrum.html`, `filtering.html`, `region-swap.html`) have separate UI modules and share image preprocessing and the FFT/IFFT core in `js/`. `js/site.js` supplies navigation and the footer.
+The site uses HTML, CSS, and native JavaScript modules. `index.html` is Home. The five experiment pages, in order, are `phase-swap.html` (001), `color-phase.html` (002 — Different Color, Different Phase), `filtering.html` (003), `region-swap.html` (004), and `spectrum.html` (005 — Spectrum / Translation). They share image preprocessing and the FFT/IFFT core in `js/`. `js/site.js` supplies navigation and the footer.
 
 Uploaded or sample images are decoded locally, center-cropped to a square, resized to 256 × 256, and composited onto white before RGB analysis. Geometry inputs are generated directly. Module Web Workers cache spectra and perform numerical calculations without blocking the main UI thread; returned pixel buffers are drawn on Canvas. Images are never uploaded.
 
